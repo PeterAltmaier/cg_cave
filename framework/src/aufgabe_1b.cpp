@@ -1,9 +1,7 @@
-#include <math.h>
 #include "common.hpp"
 #include "shader.hpp"
 #include "buffer.hpp"
 
-#define M_PI 3.14
 const int WINDOW_WIDTH =  800;
 const int WINDOW_HEIGHT = 800;
 
