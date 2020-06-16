@@ -30,7 +30,7 @@ main(int, char* argv[]) {
     unsigned int num_rows = PLANE_DEPTH - 1;
     unsigned int ind_per_row = PLANE_WIDTH * 2 + 2;
     unsigned int total_indices = (PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2);
-    unsigned int num_segments = num_rows * (PLANE_WIDTH - 1) * 2;
+    unsigned int num_segments = num_rows * (PLANE_WIDTH - 1 + 2) * 2;
     unsigned int indices[(PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2)];
 
    //for (unsigned i = 0; i < PLANE_DEPTH; i++) {
@@ -48,10 +48,10 @@ main(int, char* argv[]) {
    //}
 
     //Plane position
-    glm::vec3 pos = glm::vec3(0.0, 0.0, 0.0);
+    glm::vec3 pos = glm::vec3(0.0, 1.0, 0.0);
     glm::mat4 model = glm::translate(model, pos);
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
-
+    
 
     //generate vertices
     for (unsigned j = 0; j < PLANE_DEPTH; j++) {
@@ -92,7 +92,7 @@ main(int, char* argv[]) {
     
 
 
-    glUseProgram(shaderProgram);
+    //glUseProgram(shaderProgram);
     int model_mat_loc = glGetUniformLocation(shaderProgram, "model");
     int view_mat_loc = glGetUniformLocation(shaderProgram, "view");
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
@@ -124,17 +124,20 @@ main(int, char* argv[]) {
 
         glUseProgram(shaderProgram);
 
-        glm::mat4 view_matrix = cam.view_matrix();
-        glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view_matrix[0][0]);
+        
+        glBindVertexArray(VAO);
+
+        glm::mat4 view;
+        view = cam.view_matrix();
+        glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model[0][0]);
        
       
 
-        // render plane
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
         
+        glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
+        // render plane
 
 
 
