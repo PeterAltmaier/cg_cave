@@ -33,23 +33,24 @@ main(int, char* argv[]) {
     unsigned int num_segments = num_rows * (PLANE_WIDTH - 1 + 2) * 2;
     unsigned int indices[(PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2)];
 
-   //for (unsigned i = 0; i < PLANE_DEPTH; i++) {
-   //   
-   //    for (unsigned j = 0; j < PLANE_WIDTH; j++) {
-   //        if(j %  2 == 0)
-   //            vertices[(i * PLANE_WIDTH + j) * 3 + 0] = i;
-   //        else
-   //            vertices[(i * PLANE_WIDTH + j) * 3 + 0] = i + 0.5;
-   //        vertices[(i * PLANE_WIDTH + j) * 3 + 1] = 0;
-   //        vertices[(i * PLANE_WIDTH + j) * 3 + 2] = j;
-   //
-   //    }
-   //  
-   //}
+   for (unsigned i = 0; i < PLANE_DEPTH; i++) {
+
+       for (unsigned j = 0; j < PLANE_WIDTH; j++) {
+           if(j %  2 == 0)
+               vertices[(i * PLANE_WIDTH + j) * 3 + 0] = i;
+           else
+               vertices[(i * PLANE_WIDTH + j) * 3 + 0] = i + 0.5;
+           vertices[(i * PLANE_WIDTH + j) * 3 + 1] = 0;
+           vertices[(i * PLANE_WIDTH + j) * 3 + 2] = j;
+
+       }
+
+   }
 
     //Plane position
     glm::vec3 pos = glm::vec3(0.0, 1.0, 0.0);
-    glm::mat4 model = glm::translate(model, pos);
+    glm::mat4 model = glm::mat4(1);
+    model= glm::translate(model, pos);
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
     
 
@@ -133,9 +134,9 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model[0][0]);
        
-      
 
-        
+
+
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
         // render plane
 
