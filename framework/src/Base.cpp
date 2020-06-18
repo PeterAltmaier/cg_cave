@@ -48,7 +48,7 @@ main(int, char* argv[]) {
    //}
 
     //Plane position
-    glm::vec3 pos = glm::vec3(0.0, 1.0, 0.0);
+    glm::vec3 pos = glm::vec3(0.0, 0.0, 0.0);
     glm::mat4 model = glm::translate(model, pos);
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
     
@@ -91,12 +91,12 @@ main(int, char* argv[]) {
 
     
 
-
-    //glUseProgram(shaderProgram);
+    glUseProgram(shaderProgram);
+   
     int model_mat_loc = glGetUniformLocation(shaderProgram, "model");
     int view_mat_loc = glGetUniformLocation(shaderProgram, "view");
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
-    
+    proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
 
 
     glEnable(GL_DEPTH_TEST);
@@ -125,7 +125,7 @@ main(int, char* argv[]) {
         glUseProgram(shaderProgram);
 
         
-        glBindVertexArray(VAO);
+        
 
         glm::mat4 view;
         view = cam.view_matrix();
@@ -133,10 +133,11 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model[0][0]);
        
-      
+        glBindVertexArray(VAO);
 
         
-        glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
+        glDrawElements(GL_TRIANGLES, total_indices, GL_UNSIGNED_INT, (void*)0);
+       
         // render plane
 
 
