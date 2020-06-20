@@ -8,11 +8,11 @@
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 800;
-const float FOV = 45.f;
+const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
-const float FAR_VALUE = 100.f;
-const unsigned int PLANE_WIDTH = 200;
-const unsigned int PLANE_DEPTH = 200;
+const float FAR_VALUE = 1000.f;
+const unsigned int PLANE_WIDTH = 1000;
+const unsigned int PLANE_DEPTH = 1000;
 
 glm::mat4 proj_matrix;
 
@@ -26,12 +26,13 @@ main(int, char* argv[]) {
     //vertex data
     
     unsigned int num_vertices = PLANE_DEPTH * PLANE_WIDTH;
-    float vertices[PLANE_DEPTH * PLANE_WIDTH *3] = { 0.f };
+    //float vertices[PLANE_DEPTH * PLANE_WIDTH *3] = { 0.f };
+    float* vertices = new float[PLANE_DEPTH * PLANE_WIDTH * 3];
     unsigned int num_rows = PLANE_DEPTH - 1;
     unsigned int ind_per_row = PLANE_WIDTH * 2 + 2;
     unsigned int total_indices = (PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2);
     unsigned int num_segments = num_rows * (PLANE_WIDTH - 1 + 2) * 2;
-    unsigned int indices[(PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2)];
+    unsigned int *indices = new unsigned int[(PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2)];
 
    for (unsigned i = 0; i < PLANE_DEPTH; i++) {
 
@@ -148,6 +149,7 @@ main(int, char* argv[]) {
 
 
     glfwTerminate();
+
 }
 
 void resizeCallback(GLFWwindow*, int width, int height)
