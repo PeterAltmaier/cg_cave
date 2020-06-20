@@ -34,19 +34,6 @@ main(int, char* argv[]) {
     unsigned int num_segments = num_rows * (PLANE_WIDTH - 1 + 2) * 2;
     unsigned int *indices = new unsigned int[(PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2)];
 
-   for (unsigned i = 0; i < PLANE_DEPTH; i++) {
-
-       for (unsigned j = 0; j < PLANE_WIDTH; j++) {
-           if(j %  2 == 0)
-               vertices[(i * PLANE_WIDTH + j) * 3 + 0] = i;
-           else
-               vertices[(i * PLANE_WIDTH + j) * 3 + 0] = i + 0.5;
-           vertices[(i * PLANE_WIDTH + j) * 3 + 1] = 0;
-           vertices[(i * PLANE_WIDTH + j) * 3 + 2] = j;
-
-       }
-
-   }
 
     //Plane position
     glm::vec3 pos = glm::vec3(0.0, 1.0, 0.0);
@@ -60,7 +47,7 @@ main(int, char* argv[]) {
 
         for (unsigned i = 0; i < PLANE_WIDTH; i++) {
             vertices[(j * PLANE_WIDTH + i) * 3 + 0] = i;
-            vertices[(j * PLANE_WIDTH + i) * 3 + 1] = 0;
+            vertices[(j * PLANE_WIDTH + i) * 3 + 1] = floor(rand()%100 / 94) * ((double)rand() / (RAND_MAX))*5;
             vertices[(j * PLANE_WIDTH + i) * 3 + 2] = j;
         }
     }
@@ -77,6 +64,7 @@ main(int, char* argv[]) {
         i++;
         indices[i++] = (z + 1) * PLANE_WIDTH + 0;
     }
+
 
     GLFWwindow* window = initOpenGL(WINDOW_WIDTH, WINDOW_HEIGHT, argv[0]);
     glfwSetFramebufferSizeCallback(window, resizeCallback);
