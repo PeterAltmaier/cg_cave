@@ -27,7 +27,7 @@ main(int, char* argv[]) {
     
     unsigned int num_vertices = PLANE_DEPTH * PLANE_WIDTH;
     //float vertices[PLANE_DEPTH * PLANE_WIDTH *3] = { 0.f };
-    float* vertices = new float[PLANE_DEPTH * PLANE_WIDTH * 3];
+    float* vertices = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
     unsigned int num_rows = PLANE_DEPTH - 1;
     unsigned int ind_per_row = PLANE_WIDTH * 2 + 2;
     unsigned int total_indices = (PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2);
@@ -46,9 +46,9 @@ main(int, char* argv[]) {
     for (unsigned j = 0; j < PLANE_DEPTH; j++) {
 
         for (unsigned i = 0; i < PLANE_WIDTH; i++) {
-            vertices[(j * PLANE_WIDTH + i) * 3 + 0] = i;
-            vertices[(j * PLANE_WIDTH + i) * 3 + 1] = floor(rand()%100 / 94) * ((double)rand() / (RAND_MAX))*5;
-            vertices[(j * PLANE_WIDTH + i) * 3 + 2] = j;
+            vertices[(j * PLANE_WIDTH + i) * 6 + 0] = i;
+            vertices[(j * PLANE_WIDTH + i) * 6 + 1] = floor(rand()%100 / 94) * ((double)rand() / (RAND_MAX))*5;
+            vertices[(j * PLANE_WIDTH + i) * 6 + 2] = j;
         }
     }
 
@@ -95,10 +95,12 @@ main(int, char* argv[]) {
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    unsigned int VBO = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 3 * num_vertices * sizeof(float), vertices);
+    unsigned int VBO = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 6 * num_vertices * sizeof(float), vertices);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)3);
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
     //delete [] vertices;
 
     unsigned int IBO = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices* sizeof(unsigned int), indices);
