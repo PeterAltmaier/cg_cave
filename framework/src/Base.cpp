@@ -54,7 +54,7 @@ main(int, char* argv[]) {
 
         for (unsigned i = 0; i < PLANE_WIDTH; i++) {
             vertices[(j * PLANE_WIDTH + i) * 6 + 0] = i;
-            vertices[(j * PLANE_WIDTH + i) * 6 + 1] = 0;//floor(rand()%100 / 94) * ((double)rand() / (RAND_MAX))*5;
+            vertices[(j * PLANE_WIDTH + i) * 6 + 1] = floor(rand()%100 / 94) * ((double)rand() / (RAND_MAX))*5;
             vertices[(j * PLANE_WIDTH + i) * 6 + 2] = j;
             
         }
@@ -79,78 +79,78 @@ main(int, char* argv[]) {
         }
     }
 
-   ////flächen und deren Normale berechnen
-   //for (unsigned z = 0; z < PLANE_DEPTH - 1; z++) {
-   //    for(unsigned x =0 ; x < PLANE_WIDTH-1; x++) {
-   //        //coords rausholen und in faces speichern
-   //
-   //        //pro Vertex
-   //        //erstes Dreieck
-   //        unsigned int face_index = (z * (PLANE_WIDTH-1) + x) * 2+0;
-   //        faces[face_index].vertices[0] = glm::vec3(x, vertices[(z * PLANE_DEPTH + x) * 6 + 1], z);
-   //        faces[face_index].vertices[1] = glm::vec3(x, vertices[((z + 1) * PLANE_DEPTH + x) * 6 + 1], z + 1);
-   //        faces[face_index].vertices[2] = glm::vec3(x + 1, vertices[((z + 1) * PLANE_DEPTH + x+1) * 6 + 1], z + 1);
-   //        faces[face_index].normal =glm::cross(faces[face_index].vertices[1] - faces[face_index].vertices[0], faces[face_index].vertices[2] - faces[face_index].vertices[0]);
-   //        faces[face_index].space = 0.5f * glm::length(faces[face_index].normal);
-   //        faces[face_index].normal = glm::normalize(faces[face_index].normal);
-   //
-   //        //zweites Dreieck
-   //        face_index = (z * (PLANE_WIDTH - 1) + x) * 2 + 1;
-   //        faces[face_index].vertices[0] = glm::vec3(x, vertices[(z * PLANE_DEPTH + x) * 6 + 1], z);
-   //        faces[face_index].vertices[1] = glm::vec3(x+1, vertices[((z ) * PLANE_DEPTH + x+1) * 6 + 1], z );
-   //        faces[face_index].vertices[2] = glm::vec3(x + 1, vertices[((z + 1) * PLANE_DEPTH + x+1) * 6 + 1], z + 1);
-   //        faces[face_index].normal = -glm::cross(faces[face_index].vertices[1] - faces[face_index].vertices[0], faces[face_index].vertices[2] - faces[face_index].vertices[0]);
-   //        faces[face_index].space = 0.5f * glm::length(faces[face_index].normal);
-   //        faces[face_index].normal = glm::normalize(faces[face_index].normal);
-   //       
-   //        }
-   //}
-   //
-   ////vertex normalen berechnen aus gewichtetem Durchschnitt, die vertices am Rand müssen gesondert betrachtet werden, erstmal egal, fürs große ganze
-   ////todo Randvertices normalen berechnen
-   ////jeder innere vertex grenzt an sechs verschiedene Dreiecke
-   //for (unsigned z = 1; z < PLANE_DEPTH-1; z++) {
-   //    for (unsigned x = 1; x < PLANE_WIDTH-1; x++) {
-   //        float total_space = 0.f;
-   //        glm::vec3 normal = glm::vec3(0,0,0);
-   //        unsigned face_index;
-   //        //Dreiecke oben links von Punkt:
-   //        //1.
-   //        face_index = ((z-1) * (PLANE_WIDTH - 1) + x-1) * 2;
-   //        total_space += faces[face_index].space;
-   //        normal += faces[face_index].space * faces[face_index].normal;
-   //        //2.
-   //        face_index = ((z - 1) * (PLANE_WIDTH - 1) + x - 1) * 2 +1;
-   //        total_space += faces[face_index].space;
-   //        normal += faces[face_index].space * faces[face_index].normal;
-   //        //Dreieck oben rechts von Punkt:
-   //        //1.
-   //        face_index = ((z - 1) * (PLANE_WIDTH - 1) + x ) * 2;
-   //        total_space += faces[face_index].space;
-   //        normal += faces[face_index].space * faces[face_index].normal;
-   //        //Dreieck unten links von Punkt:
-   //        //1.
-   //        face_index = (z  * (PLANE_WIDTH - 1) + x - 1) * 2 +1;
-   //        total_space += faces[face_index].space;
-   //        normal += faces[face_index].space * faces[face_index].normal;
-   //        //Dreiecke unten rechts von Punkt:
-   //        //1.
-   //        face_index = (z  * (PLANE_WIDTH - 1) + x) * 2;
-   //        total_space += faces[face_index].space;
-   //        normal += faces[face_index].space * faces[face_index].normal;
-   //        //2.
-   //        face_index = (z * (PLANE_WIDTH - 1) + x ) * 2 + 1;
-   //        total_space += faces[face_index].space;
-   //        normal += faces[face_index].space * faces[face_index].normal;
-   //        
-   //        normal /= total_space;
-   //        normal = glm::normalize(normal);
-   //        vertices[(z * PLANE_WIDTH + x) * 6 + 3] = normal.x;
-   //        vertices[(z * PLANE_WIDTH + x) * 6 + 4] = normal.y;
-   //        vertices[(z * PLANE_WIDTH + x) * 6 + 5] = normal.z;
-   //    }
-   //}
-   //
+   //flächen und deren Normale berechnen
+   for (unsigned z = 0; z < PLANE_DEPTH - 1; z++) {
+       for(unsigned x =0 ; x < PLANE_WIDTH-1; x++) {
+           //coords rausholen und in faces speichern
+   
+           //pro Vertex
+           //erstes Dreieck
+           unsigned int face_index = (z * (PLANE_WIDTH-1) + x) * 2+0;
+           faces[face_index].vertices[0] = glm::vec3(x, vertices[(z * PLANE_DEPTH + x) * 6 + 1], z);
+           faces[face_index].vertices[1] = glm::vec3(x, vertices[((z + 1) * PLANE_DEPTH + x) * 6 + 1], z + 1);
+           faces[face_index].vertices[2] = glm::vec3(x + 1, vertices[((z + 1) * PLANE_DEPTH + x+1) * 6 + 1], z + 1);
+           faces[face_index].normal =glm::cross(faces[face_index].vertices[1] - faces[face_index].vertices[0], faces[face_index].vertices[2] - faces[face_index].vertices[0]);
+           faces[face_index].space = 0.5f * glm::length(faces[face_index].normal);
+           faces[face_index].normal = glm::normalize(faces[face_index].normal);
+   
+           //zweites Dreieck
+           face_index = (z * (PLANE_WIDTH - 1) + x) * 2 + 1;
+           faces[face_index].vertices[0] = glm::vec3(x, vertices[(z * PLANE_DEPTH + x) * 6 + 1], z);
+           faces[face_index].vertices[1] = glm::vec3(x+1, vertices[((z ) * PLANE_DEPTH + x+1) * 6 + 1], z );
+           faces[face_index].vertices[2] = glm::vec3(x + 1, vertices[((z + 1) * PLANE_DEPTH + x+1) * 6 + 1], z + 1);
+           faces[face_index].normal = -glm::cross(faces[face_index].vertices[1] - faces[face_index].vertices[0], faces[face_index].vertices[2] - faces[face_index].vertices[0]);
+           faces[face_index].space = 0.5f * glm::length(faces[face_index].normal);
+           faces[face_index].normal = glm::normalize(faces[face_index].normal);
+          
+           }
+   }
+   
+   //vertex normalen berechnen aus gewichtetem Durchschnitt, die vertices am Rand müssen gesondert betrachtet werden, erstmal egal, fürs große ganze
+   //todo Randvertices normalen berechnen
+   //jeder innere vertex grenzt an sechs verschiedene Dreiecke
+   for (unsigned z = 1; z < PLANE_DEPTH-1; z++) {
+       for (unsigned x = 1; x < PLANE_WIDTH-1; x++) {
+           float total_space = 0.f;
+           glm::vec3 normal = glm::vec3(0,0,0);
+           unsigned face_index;
+           //Dreiecke oben links von Punkt:
+           //1.
+           face_index = ((z-1) * (PLANE_WIDTH - 1) + x-1) * 2;
+           total_space += faces[face_index].space;
+           normal += faces[face_index].space * faces[face_index].normal;
+           //2.
+           face_index = ((z - 1) * (PLANE_WIDTH - 1) + x - 1) * 2 +1;
+           total_space += faces[face_index].space;
+           normal += faces[face_index].space * faces[face_index].normal;
+           //Dreieck oben rechts von Punkt:
+           //1.
+           face_index = ((z - 1) * (PLANE_WIDTH - 1) + x ) * 2;
+           total_space += faces[face_index].space;
+           normal += faces[face_index].space * faces[face_index].normal;
+           //Dreieck unten links von Punkt:
+           //1.
+           face_index = (z  * (PLANE_WIDTH - 1) + x - 1) * 2 +1;
+           total_space += faces[face_index].space;
+           normal += faces[face_index].space * faces[face_index].normal;
+           //Dreiecke unten rechts von Punkt:
+           //1.
+           face_index = (z  * (PLANE_WIDTH - 1) + x) * 2;
+           total_space += faces[face_index].space;
+           normal += faces[face_index].space * faces[face_index].normal;
+           //2.
+           face_index = (z * (PLANE_WIDTH - 1) + x ) * 2 + 1;
+           total_space += faces[face_index].space;
+           normal += faces[face_index].space * faces[face_index].normal;
+           
+           normal /= total_space;
+           normal = glm::normalize(normal);
+           vertices[(z * PLANE_WIDTH + x) * 6 + 3] = normal.x;
+           vertices[(z * PLANE_WIDTH + x) * 6 + 4] = normal.y;
+           vertices[(z * PLANE_WIDTH + x) * 6 + 5] = normal.z;
+       }
+   }
+   
 
 
     GLFWwindow* window = initOpenGL(WINDOW_WIDTH, WINDOW_HEIGHT, argv[0]);
@@ -189,7 +189,7 @@ main(int, char* argv[]) {
     unsigned int VBO = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 6 * num_vertices * sizeof(float), vertices);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)3);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     //delete [] vertices;
