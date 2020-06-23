@@ -34,13 +34,13 @@ main(int, char* argv[]) {
     //vertex data
     
     unsigned int num_vertices = PLANE_DEPTH * PLANE_WIDTH;
-    float* vertices = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
+    float* vertices_floor = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
     unsigned int num_rows = PLANE_DEPTH - 1;
     unsigned int ind_per_row = PLANE_WIDTH * 2 + 2;
     unsigned int total_indices = (PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2);
     unsigned int num_segments = num_rows * (PLANE_WIDTH - 1 + 2) * 2; //zusammen mit den depricated +2
     unsigned int *indices = new unsigned int[(PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2)];
-    face *faces = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
+    face *faces_floor = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
 
     //Plane position
     glm::vec3 pos = glm::vec3(0.0, 1.0, 0.0);
@@ -54,9 +54,9 @@ main(int, char* argv[]) {
     for (unsigned j = 0; j < PLANE_DEPTH; j++) {
 
         for (unsigned i = 0; i < PLANE_WIDTH; i++) {
-            vertices[(j * PLANE_WIDTH + i) * 6 + 0] = i;
-            vertices[(j * PLANE_WIDTH + i) * 6 + 1] = generator.generateHeight(i,j);
-            vertices[(j * PLANE_WIDTH + i) * 6 + 2] = j;
+            vertices_floor[(j * PLANE_WIDTH + i) * 6 + 0] = i;
+            vertices_floor[(j * PLANE_WIDTH + i) * 6 + 1] = generator.generateHeight(i,j);
+            vertices_floor[(j * PLANE_WIDTH + i) * 6 + 2] = j;
             
         }
     }
@@ -88,21 +88,21 @@ main(int, char* argv[]) {
            //pro Vertex
            //erstes Dreieck
            unsigned int face_index = (z * (PLANE_WIDTH-1) + x) * 2+0;
-           faces[face_index].vertices[0] = glm::vec3(x, vertices[(z * PLANE_DEPTH + x) * 6 + 1], z);
-           faces[face_index].vertices[1] = glm::vec3(x, vertices[((z + 1) * PLANE_DEPTH + x) * 6 + 1], z + 1);
-           faces[face_index].vertices[2] = glm::vec3(x + 1, vertices[((z + 1) * PLANE_DEPTH + x+1) * 6 + 1], z + 1);
-           faces[face_index].normal =glm::cross(faces[face_index].vertices[1] - faces[face_index].vertices[0], faces[face_index].vertices[2] - faces[face_index].vertices[0]);
-           faces[face_index].space = 0.5f * glm::length(faces[face_index].normal);
-           faces[face_index].normal = glm::normalize(faces[face_index].normal);
+           faces_floor[face_index].vertices[0] = glm::vec3(x, vertices_floor[(z * PLANE_DEPTH + x) * 6 + 1], z);
+           faces_floor[face_index].vertices[1] = glm::vec3(x, vertices_floor[((z + 1) * PLANE_DEPTH + x) * 6 + 1], z + 1);
+           faces_floor[face_index].vertices[2] = glm::vec3(x + 1, vertices_floor[((z + 1) * PLANE_DEPTH + x+1) * 6 + 1], z + 1);
+           faces_floor[face_index].normal =glm::cross(faces_floor[face_index].vertices[1] - faces_floor[face_index].vertices[0], faces_floor[face_index].vertices[2] - faces_floor[face_index].vertices[0]);
+           faces_floor[face_index].space = 0.5f * glm::length(faces_floor[face_index].normal);
+           faces_floor[face_index].normal = glm::normalize(faces_floor[face_index].normal);
    
            //zweites Dreieck
            face_index = (z * (PLANE_WIDTH - 1) + x) * 2 + 1;
-           faces[face_index].vertices[0] = glm::vec3(x, vertices[(z * PLANE_DEPTH + x) * 6 + 1], z);
-           faces[face_index].vertices[1] = glm::vec3(x+1, vertices[((z ) * PLANE_DEPTH + x+1) * 6 + 1], z );
-           faces[face_index].vertices[2] = glm::vec3(x + 1, vertices[((z + 1) * PLANE_DEPTH + x+1) * 6 + 1], z + 1);
-           faces[face_index].normal = -glm::cross(faces[face_index].vertices[1] - faces[face_index].vertices[0], faces[face_index].vertices[2] - faces[face_index].vertices[0]);
-           faces[face_index].space = 0.5f * glm::length(faces[face_index].normal);
-           faces[face_index].normal = glm::normalize(faces[face_index].normal);
+           faces_floor[face_index].vertices[0] = glm::vec3(x, vertices_floor[(z * PLANE_DEPTH + x) * 6 + 1], z);
+           faces_floor[face_index].vertices[1] = glm::vec3(x+1, vertices_floor[((z ) * PLANE_DEPTH + x+1) * 6 + 1], z );
+           faces_floor[face_index].vertices[2] = glm::vec3(x + 1, vertices_floor[((z + 1) * PLANE_DEPTH + x+1) * 6 + 1], z + 1);
+           faces_floor[face_index].normal = -glm::cross(faces_floor[face_index].vertices[1] - faces_floor[face_index].vertices[0], faces_floor[face_index].vertices[2] - faces_floor[face_index].vertices[0]);
+           faces_floor[face_index].space = 0.5f * glm::length(faces_floor[face_index].normal);
+           faces_floor[face_index].normal = glm::normalize(faces_floor[face_index].normal);
           
            }
    }
@@ -118,37 +118,37 @@ main(int, char* argv[]) {
            //Dreiecke oben links von Punkt:
            //1.
            face_index = ((z-1) * (PLANE_WIDTH - 1) + x-1) * 2;
-           total_space += faces[face_index].space;
-           normal += faces[face_index].space * faces[face_index].normal;
+           total_space += faces_floor[face_index].space;
+           normal += faces_floor[face_index].space * faces_floor[face_index].normal;
            //2.
            face_index = ((z - 1) * (PLANE_WIDTH - 1) + x - 1) * 2 +1;
-           total_space += faces[face_index].space;
-           normal += faces[face_index].space * faces[face_index].normal;
+           total_space += faces_floor[face_index].space;
+           normal += faces_floor[face_index].space * faces_floor[face_index].normal;
            //Dreieck oben rechts von Punkt:
            //1.
            face_index = ((z - 1) * (PLANE_WIDTH - 1) + x ) * 2;
-           total_space += faces[face_index].space;
-           normal += faces[face_index].space * faces[face_index].normal;
+           total_space += faces_floor[face_index].space;
+           normal += faces_floor[face_index].space * faces_floor[face_index].normal;
            //Dreieck unten links von Punkt:
            //1.
            face_index = (z  * (PLANE_WIDTH - 1) + x - 1) * 2 +1;
-           total_space += faces[face_index].space;
-           normal += faces[face_index].space * faces[face_index].normal;
+           total_space += faces_floor[face_index].space;
+           normal += faces_floor[face_index].space * faces_floor[face_index].normal;
            //Dreiecke unten rechts von Punkt:
            //1.
            face_index = (z  * (PLANE_WIDTH - 1) + x) * 2;
-           total_space += faces[face_index].space;
-           normal += faces[face_index].space * faces[face_index].normal;
+           total_space += faces_floor[face_index].space;
+           normal += faces_floor[face_index].space * faces_floor[face_index].normal;
            //2.
            face_index = (z * (PLANE_WIDTH - 1) + x ) * 2 + 1;
-           total_space += faces[face_index].space;
-           normal += faces[face_index].space * faces[face_index].normal;
+           total_space += faces_floor[face_index].space;
+           normal += faces_floor[face_index].space * faces_floor[face_index].normal;
            
            normal /= total_space;
            normal = glm::normalize(normal);
-           vertices[(z * PLANE_WIDTH + x) * 6 + 3] = normal.x;
-           vertices[(z * PLANE_WIDTH + x) * 6 + 4] = normal.y;
-           vertices[(z * PLANE_WIDTH + x) * 6 + 5] = normal.z;
+           vertices_floor[(z * PLANE_WIDTH + x) * 6 + 3] = normal.x;
+           vertices_floor[(z * PLANE_WIDTH + x) * 6 + 4] = normal.y;
+           vertices_floor[(z * PLANE_WIDTH + x) * 6 + 5] = normal.z;
        }
    }
    
@@ -187,7 +187,7 @@ main(int, char* argv[]) {
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    unsigned int VBO = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 6 * num_vertices * sizeof(float), vertices);
+    unsigned int VBO = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 6 * num_vertices * sizeof(float), vertices_floor);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
