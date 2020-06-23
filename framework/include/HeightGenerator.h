@@ -1,0 +1,14 @@
+#pragma once
+class HeightGenerator{
+    private:
+        float AMPLITUDE;
+        int seed;
+        float getNoise(int x, int z);
+        float getSmoothNoise(int x, int z);
+        float interpolate(float a, float b, float blend);
+        float getInterpolatedNoise(float x, float z);
+    public:
+        HeightGenerator();
+        float generateHeight(int x, int z);
+
+};

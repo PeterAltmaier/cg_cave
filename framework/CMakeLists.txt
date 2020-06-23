@@ -57,7 +57,7 @@ foreach(PROJECT_SOURCE_FILE ${PROJECT_SOURCES})
     get_filename_component(SRC_NAME ${PROJECT_SOURCE_FILE} NAME_WE)
     add_executable(${SRC_NAME} ${PROJECT_SOURCE_FILE} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${LIBRARY_SOURCES} ${VENDORS_SOURCES})
+                               ${LIBRARY_SOURCES} ${VENDORS_SOURCES} src/library/HeightGenerator.cpp include/HeightGenerator.h)
     target_link_libraries(${SRC_NAME} assimp glfw
                           ${GLFW_LIBRARIES} ${GLAD_LIBRARIES})
     #set_target_properties(${SRC_NAME} PROPERTIES

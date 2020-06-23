@@ -7,6 +7,7 @@
 #include "mesh.hpp"
 #include <algorithm>
 #include <iterator>
+#include "HeightGenerator.h"
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 800;
