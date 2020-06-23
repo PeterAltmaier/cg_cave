@@ -47,7 +47,7 @@ HeightGenerator::HeightGenerator()
 {
     srand(time(NULL));
     this->seed = rand()%1000000000;
-    this->AMPLITUDE=70.f;
+    this->AMPLITUDE=8.f;
 }
 
 float HeightGenerator::generateHeight(int x, int z)

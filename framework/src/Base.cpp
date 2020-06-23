@@ -48,14 +48,15 @@ main(int, char* argv[]) {
     glm::mat4 model = glm::mat4(1);
     model= glm::translate(model, pos);
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
-    
+
+    HeightGenerator generator;
 
     //generate vertices
     for (unsigned j = 0; j < PLANE_DEPTH; j++) {
 
         for (unsigned i = 0; i < PLANE_WIDTH; i++) {
             vertices[(j * PLANE_WIDTH + i) * 6 + 0] = i;
-            vertices[(j * PLANE_WIDTH + i) * 6 + 1] = floor(rand()%100 / 94) * ((double)rand() / (RAND_MAX))*5;
+            vertices[(j * PLANE_WIDTH + i) * 6 + 1] = generator.generateHeight(i,j);
             vertices[(j * PLANE_WIDTH + i) * 6 + 2] = j;
             
         }
