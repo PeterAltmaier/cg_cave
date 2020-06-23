@@ -9,9 +9,10 @@
 float HeightGenerator::getNoise(int x, int z)
 {
     srand(x * 49632 + z * 32517 + this->seed);
-    float r = (float) (rand()) / (float) (RAND_MAX);
+    float r = ((float)rand()) / (float)RAND_MAX;
     r *= (float)(rand()) / (float)(RAND_MAX);
     r *= (float)(rand()) / (float)(RAND_MAX);
+    r += (float)(rand()) / (float)(RAND_MAX) /2.f;
     return r * 2.f -1;
 }
 
@@ -55,9 +56,8 @@ HeightGenerator::HeightGenerator()
 
 float HeightGenerator::generateHeight(int x, int z)
 {
-    float total = getInterpolatedNoise(x / 4.f, z / 4.f) * this->AMPLITUDE;
+    float total = getInterpolatedNoise(x / 4.f, z / 4.f) * this->AMPLITUDE ;
     total += getInterpolatedNoise(x / 2.f, z / 2.f) * this->AMPLITUDE/3.f;
     total += getInterpolatedNoise(x , z ) * this->AMPLITUDE / 9.f;
-    //return total;
-    return getNoise(x, z);
+    return total;
 }

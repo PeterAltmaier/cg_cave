@@ -14,8 +14,8 @@ const int WINDOW_HEIGHT = 800;
 const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
-const unsigned int PLANE_WIDTH = 100;
-const unsigned int PLANE_DEPTH = 100;
+const unsigned int PLANE_WIDTH = 300;
+const unsigned int PLANE_DEPTH = 300;
 
 glm::mat4 proj_matrix;
 
@@ -34,7 +34,6 @@ main(int, char* argv[]) {
     //vertex data
     
     unsigned int num_vertices = PLANE_DEPTH * PLANE_WIDTH;
-    //float vertices[PLANE_DEPTH * PLANE_WIDTH *3] = { 0.f };
     float* vertices = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
     unsigned int num_rows = PLANE_DEPTH - 1;
     unsigned int ind_per_row = PLANE_WIDTH * 2 + 2;
