@@ -8,14 +8,15 @@
 #include <algorithm>
 #include <iterator>
 #include "HeightGenerator.h"
+#include "stb_image.h"
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 800;
 const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
-const unsigned int PLANE_WIDTH = 500;
-const unsigned int PLANE_DEPTH = 500;
+const unsigned int PLANE_WIDTH = 300;
+const unsigned int PLANE_DEPTH = 300;
 
 glm::mat4 proj_matrix;
 
@@ -63,7 +64,7 @@ main(int, char* argv[]) {
     //Plane position ceil
     glm::vec3 pos_ceil = glm::vec3(0.0, 50.0, 0.0);
     glm::mat4 model_ceil = glm::mat4(1);
-    model_ceil = glm::translate(model_floor, pos_floor);
+    model_ceil = glm::translate(model_ceil, pos_ceil);
 
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
 
@@ -81,7 +82,7 @@ main(int, char* argv[]) {
     GLFWwindow* window = initOpenGL(WINDOW_WIDTH, WINDOW_HEIGHT, argv[0]);
     glfwSetFramebufferSizeCallback(window, resizeCallback);
     camera cam(window);
-    
+
 
     // load and compile shaders and link program
     unsigned int vertexShader = compileShader("base.vert", GL_VERTEX_SHADER);
@@ -107,21 +108,32 @@ main(int, char* argv[]) {
 
     glEnable(GL_DEPTH_TEST);
 
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    unsigned int VAO[2];
+    glGenVertexArrays(2,VAO);
+    glBindVertexArray(VAO[0]);
 
-    unsigned int VBO = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 6 * num_vertices * sizeof(float), vertices_floor);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    unsigned int VBO_floor = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 6 * num_vertices * sizeof(float), vertices_floor);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     //delete [] vertices;
 
-    unsigned int IBO = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices* sizeof(unsigned int), indices);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    unsigned int IBO_floor = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices* sizeof(unsigned int), indices);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO_floor);
     //delete [] indices;
+
+    glBindVertexArray(VAO[1]);
+    unsigned int VBO_ceil = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW,6 * num_vertices * sizeof(float), vertices_ceil);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    unsigned int IBO_ceil = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices*sizeof(unsigned int), indices);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO_ceil);
 
     // rendering loop
     while (glfwWindowShouldClose(window) == false) {
@@ -141,10 +153,18 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
        
-        glBindVertexArray(VAO);
+        glBindVertexArray(VAO[0]);
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
         // render plane
+
+        glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
+        glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
+        glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_ceil[0][0]);
+
+        glBindVertexArray(VAO[1]);
+
+        glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT,(void*)0);
 
 
 
