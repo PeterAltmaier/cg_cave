@@ -50,20 +50,33 @@ main(int, char* argv[]) {
     float floor_roughness[] = { 24.f, 8.f, 2.f };
     float floor_amp_fit[] = { 3.f, 1.f, 0.3f };
 
+    float* vertices_ceil = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
+    face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
+    float ceil_roughness[] = { 24.f, 8.f, 2.f };
+    float ceil_amp_fit[] = { 3.f, 1.f, 0.3f };
 
-    //Plane position
-    glm::vec3 pos = glm::vec3(0.0, 1.0, 0.0);
-    glm::mat4 model = glm::mat4(1);
-    model= glm::translate(model, pos);
+    //Plane position floor
+    glm::vec3 pos_floor = glm::vec3(0.0, 0.0, 0.0);
+    glm::mat4 model_floor = glm::mat4(1);
+    model_floor= glm::translate(model_floor, pos_floor);
+
+    //Plane position ceil
+    glm::vec3 pos_ceil = glm::vec3(0.0, 50.0, 0.0);
+    glm::mat4 model_ceil = glm::mat4(1);
+    model_ceil = glm::translate(model_floor, pos_floor);
+
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
 
-    HeightGenerator generator(8.f, floor_roughness, floor_amp_fit, 3);
+    HeightGenerator generator_floor(8.f, floor_roughness, floor_amp_fit, 3, 1, 0);
+    HeightGenerator generator_ceil(8.f, floor_roughness, floor_amp_fit, 3, -1, 0);
 
-    //generate vertices
-    generatePlane(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator);
+    //generate vertices floor
+    generatePlane(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_floor);
+    
+    //generate vertices ceiling
+    generatePlane(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_ceil);
+
     generateIndices(indices, total_indices);
-   
-
 
     GLFWwindow* window = initOpenGL(WINDOW_WIDTH, WINDOW_HEIGHT, argv[0]);
     glfwSetFramebufferSizeCallback(window, resizeCallback);
@@ -126,7 +139,7 @@ main(int, char* argv[]) {
         view = cam.view_matrix();
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
-        glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model[0][0]);
+        glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
        
         glBindVertexArray(VAO);
 

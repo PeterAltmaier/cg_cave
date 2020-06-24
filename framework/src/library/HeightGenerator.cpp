@@ -48,7 +48,7 @@ float HeightGenerator::getInterpolatedNoise(float x, float z)
     return interpolate(i1, i2, fracZ);
 }
 
-HeightGenerator::HeightGenerator(float fAMPLITUDE, float* roughness, float* amp_fit, size_t arr_size)
+HeightGenerator::HeightGenerator(float fAMPLITUDE, float* roughness, float* amp_fit, size_t arr_size, int flip, float offset)
 {
     srand(time(NULL));
     this->seed = rand()%1000000000;
@@ -56,6 +56,8 @@ HeightGenerator::HeightGenerator(float fAMPLITUDE, float* roughness, float* amp_
     this->roughness = roughness;
     this->amp_fit = amp_fit;
     this->arr_size = arr_size;
+    this->flip = flip;
+    this->offset = offset;
 }
 
 float HeightGenerator::generateHeight(int x, int z)
@@ -69,5 +71,5 @@ float HeightGenerator::generateHeight(int x, int z)
     //total += getInterpolatedNoise(x / 8.f, z / 8.f) * this->AMPLITUDE ;
     //total += getInterpolatedNoise(x / 2.f, z / 2.f) * this->AMPLITUDE/3.f;
     //total += getInterpolatedNoise(x , z ) * this->AMPLITUDE / 9.f;
-    return -total;
+    return this->flip* total + this->offset;
 }
