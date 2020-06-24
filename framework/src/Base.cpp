@@ -53,8 +53,8 @@ main(int, char* argv[]) {
 
     float* vertices_ceil = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
     face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
-    float ceil_roughness[] = { 24.f, 8.f, 2.f };
-    float ceil_amp_fit[] = { 3.f, 1.f, 0.3f };
+    float ceil_roughness[] = { 20.f,9.f, 3.f };
+    float ceil_amp_fit[] = { 4.f, 1.f, 0.6f };
 
     //Plane position floor
     glm::vec3 pos_floor = glm::vec3(0.0, 0.0, 0.0);
@@ -62,14 +62,14 @@ main(int, char* argv[]) {
     model_floor= glm::translate(model_floor, pos_floor);
 
     //Plane position ceil
-    glm::vec3 pos_ceil = glm::vec3(0.0, 50.0, 0.0);
+    glm::vec3 pos_ceil = glm::vec3(0.0, 85.0, 0.0);
     glm::mat4 model_ceil = glm::mat4(1);
     model_ceil = glm::translate(model_ceil, pos_ceil);
 
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
 
     HeightGenerator generator_floor(8.f, floor_roughness, floor_amp_fit, 3, 1, 0);
-    HeightGenerator generator_ceil(8.f, floor_roughness, floor_amp_fit, 3, -1, 0);
+    HeightGenerator generator_ceil(9.f, ceil_roughness, ceil_amp_fit, 3, -1, 0);
 
     //generate vertices floor
     generatePlane(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_floor);
