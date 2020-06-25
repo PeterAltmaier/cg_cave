@@ -15,8 +15,8 @@ const int WINDOW_HEIGHT = 800;
 const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
-const unsigned int PLANE_WIDTH = 300;
-const unsigned int PLANE_DEPTH = 300;
+const unsigned int PLANE_WIDTH = 200; //TODO wenn hier angepasst, dann auch in base.vert anpassen
+const unsigned int PLANE_DEPTH = 200;
 
 glm::mat4 proj_matrix;
 
@@ -53,7 +53,7 @@ main(int, char* argv[]) {
 
     float* vertices_ceil = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
     face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
-    float ceil_roughness[] = { 20.f,9.f, 3.f };
+    float ceil_roughness[] = { 20.f, 9.f, 3.f };
     float ceil_amp_fit[] = { 4.f, 1.f, 0.6f };
 
     //Plane position floor
@@ -85,7 +85,7 @@ main(int, char* argv[]) {
 
 
     // load and compile shaders and link program
-    unsigned int vertexShader = compileShader("base.vert", GL_VERTEX_SHADER);
+    unsigned int vertexShader = compileShader("base_normal.vert", GL_VERTEX_SHADER);
     unsigned int fragmentShader = compileShader("base.frag", GL_FRAGMENT_SHADER);
     unsigned int shaderProgram = linkProgram(vertexShader, fragmentShader);
     // after linking the program the shader objects are no longer needed
@@ -95,11 +95,15 @@ main(int, char* argv[]) {
     
 
     glUseProgram(shaderProgram);
-   
+
+
+    int growth_fac_loc = glGetUniformLocation(shaderProgram, "growth_fac");
     int model_mat_loc = glGetUniformLocation(shaderProgram, "model");
     int view_mat_loc = glGetUniformLocation(shaderProgram, "view");
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
     int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
+    int vertices_loc = glGetUniformLocation(shaderProgram, "vertices");
+    
     glm::vec3 light_dir = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
 
@@ -135,6 +139,7 @@ main(int, char* argv[]) {
     unsigned int IBO_ceil = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices*sizeof(unsigned int), indices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO_ceil);
 
+    int growth = 1;
     // rendering loop
     while (glfwWindowShouldClose(window) == false) {
         // set background color...
@@ -146,13 +151,17 @@ main(int, char* argv[]) {
 
         
         
+        glUniform1i(growth_fac_loc, growth);
+
+        if (growth <= 30000)
+            growth++;
 
         glm::mat4 view;
         view = cam.view_matrix();
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
-       
+        glUniform1fv(vertices_loc, num_vertices, vertices_floor); //todo
         glBindVertexArray(VAO[0]);
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
@@ -161,7 +170,7 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_ceil[0][0]);
-
+        glUniform1fv(vertices_loc, num_vertices, vertices_ceil);
         glBindVertexArray(VAO[1]);
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT,(void*)0);
@@ -196,6 +205,8 @@ void generatePlane(float* vertices, unsigned int v_size, face* faces, unsigned i
 
         }
     }
+    //todo test
+    return;
 
     //flächen und deren Normale berechnen
     for (unsigned z = 0; z < PLANE_DEPTH - 1; z++) {

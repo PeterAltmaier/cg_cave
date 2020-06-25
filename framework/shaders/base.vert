@@ -6,11 +6,15 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform float vertices[200*200*6];
+
+uniform int growth_fac;
+
 out vec3 interp_normal;
 
 void main()
 {
-	gl_Position = projection * view * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+	gl_Position = projection * view * model * vec4(aPos.x, (growth_fac /30000.f) * aPos.y, aPos.z, 1.0);
 	interp_normal = normalize((transpose(inverse(model)) * vec4(normal, 0.0)).xyz);
 }
 
