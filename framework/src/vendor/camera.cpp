@@ -91,8 +91,44 @@ drag_middle(int /*x*/, int /*y*/, int dx, int dy) {
     glm::vec3 v(state->view_mat[0][1],
                 state->view_mat[1][1],
                 state->view_mat[2][1]);
-    state->look_at -= 0.01f * dx * u;
-    state->look_at += 0.01f * dy * v;
+    state->look_at -= 0.1f * dx * u;
+    state->look_at += 0.1f * dy * v;
+    update();
+}
+
+//wir von processInput aus Base.cpp aufgerufen => flüssige Bewegung
+void
+camera::keycallback(GLFWwindow* window,int key,float delta_time){
+    glm::vec3 up = glm::vec3(0.0f,1.0f,0.0f);
+    glm::vec3 camera_right = glm::vec3(state->view_mat[0][0],state->view_mat[1][0],state->view_mat[2][0]);
+    if((key==GLFW_KEY_ESCAPE)) {
+        glfwSetWindowShouldClose(window, true);
+    }
+    float cameraSpeed = 0.5f * delta_time;
+    glm::vec3 trans = glm::vec3(0.0f,0.0f,0.0f);
+    if((key==GLFW_KEY_W)){
+        trans += glm::normalize(glm::cross(up,camera_right))*cameraSpeed;
+    }
+    if((key==GLFW_KEY_S)){
+        trans -= glm::normalize(glm::cross(up,camera_right))*cameraSpeed;
+    }
+    if((key==GLFW_KEY_D)){
+        trans += glm::normalize(camera_right) * cameraSpeed;
+    }
+    if((key==GLFW_KEY_A)){
+        trans -= glm::normalize(camera_right) * cameraSpeed;
+    }
+    if((key==GLFW_KEY_E)){
+        trans += up * cameraSpeed;
+    }
+    if((key==GLFW_KEY_R)){
+        trans -= up * cameraSpeed;
+    }
+    glm::mat4 temp = glm::identity<glm::mat4>();
+    temp[0][3]=trans[0];
+    temp[1][3]=trans[1];
+    temp[2][3]=trans[2];
+    state->look_at += trans;
     update();
 }
 
@@ -189,6 +225,7 @@ camera::camera(GLFWwindow* window) {
     glfwSetMouseButtonCallback(window, [] (GLFWwindow*, int button, int action, int mods) { mouse(button, action, mods); });
     glfwSetCursorPosCallback(window, [] (GLFWwindow*, double x, double y) { motion(static_cast<int>(x), static_cast<int>(y)); });
     glfwSetScrollCallback(window, [] (GLFWwindow*, double , double delta) { scroll(static_cast<int>(-delta)); });
+    //glfwSetKeyCallback(window,[](GLFWwindow* window,int key,int scancode, int action, int mods){keycallback(window,key,scancode,action,mods);});
 }
 
 camera::~camera() {

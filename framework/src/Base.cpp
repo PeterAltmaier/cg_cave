@@ -34,7 +34,13 @@ void
 generatePlane(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator);
 
 void
-generateIndices(unsigned int* indices, unsigned int ind_size);
+generateIndices(unsigned int *indices, unsigned int ind_size);
+
+void processInput(GLFWwindow *window,float delta_time,float *momentum,float *period);
+
+void assign_momentum(unsigned int *pressed,float *momentum,float *period);
+
+void key_pressed(GLFWwindow *window,unsigned int *pressed);
 
 int
 main(int, char* argv[]) {
@@ -55,6 +61,14 @@ main(int, char* argv[]) {
     face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float ceil_roughness[] = { 20.f,9.f, 3.f };
     float ceil_amp_fit[] = { 4.f, 1.f, 0.6f };
+
+    //camera variables
+    float delta_time = 0.0f;
+    float last_frame = 0.0f;
+    float speed = 60;
+    float momentum[6] = {0.0f};
+    float period[6] = {0.0f};
+    unsigned int pressed[6] = {0};
 
     //Plane position floor
     glm::vec3 pos_floor = glm::vec3(0.0, 0.0, 0.0);
@@ -138,9 +152,17 @@ main(int, char* argv[]) {
     // rendering loop
     while (glfwWindowShouldClose(window) == false) {
         // set background color...
-        glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         // and fill screen with it (therefore clearing the window)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        float current_Frame = glfwGetTime();
+        delta_time =current_Frame -last_frame;
+        last_frame=current_Frame;
+
+        key_pressed(window,pressed);
+        assign_momentum(pressed, momentum,period);
+        processInput(window,delta_time*speed,momentum,period);
 
         glUseProgram(shaderProgram);
 
@@ -289,6 +311,49 @@ generateIndices(unsigned int* indices, unsigned int ind_size) {
         }
         else {
             indices[i] = indices[i - 1];
+        }
+    }
+}
+
+void processInput(GLFWwindow *window,float delta_time,float* momentum,float *period){
+    int key[] ={GLFW_KEY_W,GLFW_KEY_S,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_E,GLFW_KEY_R}; //alle zu testenden keys
+
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+    if(glfwGetKey(window,GLFW_KEY_LEFT_SHIFT)==GLFW_PRESS){ //shift beschleunigt
+        delta_time *= 2.0f;
+    }
+
+    for(int i=0;i<6;i++){
+        if(period[i]>0){
+            camera::keycallback(window,key[i],delta_time*momentum[i]);
+        }
+    }
+}
+
+void assign_momentum(unsigned int *pressed,float *momentum,float *period){
+    for(int i = 0;i<6;i++) {
+        if (pressed[i]) {
+            if (period[i] < 5) {
+                period[i] += 0.01f;
+            }
+            momentum[i] = 0.04f * pow(period[i], 2);
+        } else {
+            if (period[i] > 0) {
+                period[i] -= 0.01f;
+            }
+            momentum[i] = 0.04f * pow(period[i], 2);
+        }
+    }
+}
+
+void key_pressed(GLFWwindow* window,unsigned int* pressed){
+    int key[] ={GLFW_KEY_W,GLFW_KEY_S,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_E,GLFW_KEY_R};
+    for(int i=0;i<6;i++){
+        if(glfwGetKey(window,key[i]) == GLFW_PRESS){
+            pressed[i] = 1;
+        }else{
+            pressed[i] = 0;
         }
     }
 }

@@ -7,6 +7,8 @@ struct camera {
 
     virtual ~camera();
 
+    void static keycallback(GLFWwindow *window, int key,float delta_time);
+
     glm::mat4
     view_matrix() const;
 
