@@ -118,16 +118,12 @@ camera::keycallback(GLFWwindow* window,int key,float delta_time){
     if((key==GLFW_KEY_A)){
         trans -= glm::normalize(camera_right) * cameraSpeed;
     }
-    if((key==GLFW_KEY_E)){
+    if((key==GLFW_KEY_SPACE)){
         trans += up * cameraSpeed;
     }
-    if((key==GLFW_KEY_R)){
+    if((key==GLFW_KEY_LEFT_SHIFT)){
         trans -= up * cameraSpeed;
     }
-    glm::mat4 temp = glm::identity<glm::mat4>();
-    temp[0][3]=trans[0];
-    temp[1][3]=trans[1];
-    temp[2][3]=trans[2];
     state->look_at += trans;
     update();
 }

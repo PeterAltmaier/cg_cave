@@ -124,6 +124,7 @@ main(int, char* argv[]) {
         glTexImage2D(GL_TEXTURE_2D,0,GL_RGB32F,width, height,0,GL_RGB,GL_UNSIGNED_BYTE,data_load);
         glGenerateMipmap(GL_TEXTURE_2D);
 
+
     }else{
         std::cout<< "Bild konnte nicht geladen werden"<<std::endl;
     }
@@ -347,11 +348,11 @@ generateIndices(unsigned int* indices, unsigned int ind_size) {
 }
 
 void processInput(GLFWwindow *window,float delta_time,float* momentum,float *period){
-    int key[] ={GLFW_KEY_W,GLFW_KEY_S,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_E,GLFW_KEY_R}; //alle zu testenden keys
+    int key[] ={GLFW_KEY_W,GLFW_KEY_S,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_SPACE,GLFW_KEY_LEFT_SHIFT}; //alle zu testenden keys
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    if(glfwGetKey(window,GLFW_KEY_LEFT_SHIFT)==GLFW_PRESS){ //shift beschleunigt
+    if(glfwGetKey(window,GLFW_KEY_LEFT_CONTROL)==GLFW_PRESS){ //shift beschleunigt
         delta_time *= 2.0f;
     }
 
@@ -379,7 +380,7 @@ void assign_momentum(unsigned int *pressed,float *momentum,float *period){
 }
 
 void key_pressed(GLFWwindow* window,unsigned int* pressed){
-    int key[] ={GLFW_KEY_W,GLFW_KEY_S,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_E,GLFW_KEY_R};
+    int key[] ={GLFW_KEY_W,GLFW_KEY_S,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_SPACE,GLFW_KEY_LEFT_SHIFT};
     for(int i=0;i<6;i++){
         if(glfwGetKey(window,key[i]) == GLFW_PRESS){
             pressed[i] = 1;
