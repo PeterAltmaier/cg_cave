@@ -98,6 +98,37 @@ main(int, char* argv[]) {
     camera cam(window);
 
 
+    unsigned int texture;
+    glGenTextures(1,&texture);
+    glBindTexture(GL_TEXTURE_2D,texture);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+
+    int width, height, nrChannels;
+    unsigned char* data_load = stbi_load("../data/kalk2.jpg",&width,&height,&nrChannels,0);
+    if(data_load){
+        /*
+        float* data = new float[4 * width * height];
+        for (int j=0; j < height; ++j) {
+            for (int i=0; i < width; ++i) {
+                data[j*width*4 + i*4 + 0] = static_cast<float>(data_load[j*width*3 + i*3 + 0]) / 255;
+                data[j*width*4 + i*4 + 1] = static_cast<float>(data_load[j*width*3 + i*3 + 1]) / 255;
+                data[j*width*4 + i*4 + 2] = static_cast<float>(data_load[j*width*3 + i*3 + 2]) / 255;
+                data[j*width*4 + i*4 + 3] = 1.f;
+            }
+        }*/
+
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGB32F,width, height,0,GL_RGB,GL_UNSIGNED_BYTE,data_load);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+    }else{
+        std::cout<< "Bild konnte nicht geladen werden"<<std::endl;
+    }
+
+
     // load and compile shaders and link program
     unsigned int vertexShader = compileShader("base.vert", GL_VERTEX_SHADER);
     unsigned int fragmentShader = compileShader("base.frag", GL_FRAGMENT_SHADER);
@@ -114,6 +145,7 @@ main(int, char* argv[]) {
     int view_mat_loc = glGetUniformLocation(shaderProgram, "view");
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
     int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
+    int tex_loc = glGetUniformLocation(shaderProgram, "tex");
     glm::vec3 light_dir = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
 
@@ -166,8 +198,7 @@ main(int, char* argv[]) {
 
         glUseProgram(shaderProgram);
 
-        
-        
+        glUniform1i(tex_loc, 0);
 
         glm::mat4 view;
         view = cam.view_matrix();
