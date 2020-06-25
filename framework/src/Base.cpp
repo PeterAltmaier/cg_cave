@@ -202,6 +202,8 @@ main(int, char* argv[]) {
         glUniform1i(tex_loc, 0);
 
         glm::mat4 view;
+        if (cam.is_not_dragging_w_momentum())
+            cam.apply_after_momentum();
         view = cam.view_matrix();
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);

@@ -15,6 +15,10 @@ struct camera_state {
     bool right_down;
     bool dragging;
 
+    int last_dx;
+    int last_dy;
+    float period_mouse;
+
     // transform state
     glm::vec3 look_at;
     float phi;
@@ -71,7 +75,18 @@ drag_left(int /*x*/, int /*y*/, int /*dx*/, int /*dy*/) {
 
 void
 drag_right(int /*x*/, int /*y*/, int dx, int dy) {
-    state->theta -= 0.01f * dy;
+    float momentum = 0;
+    state->last_dx = dx;
+    state->last_dy = dy;
+    if (state->period_mouse < 3.0f) {
+        if(state->dragging)
+            state->period_mouse += 0.1;
+        momentum = 1.f/9.f * (float) pow((state->period_mouse),2);
+    }
+
+        
+
+    state->theta -= 0.01f * dy * momentum;
     if (state->theta < -0.5*M_PI) state->theta = -0.5*M_PI;
     if (state->theta >  0.5*M_PI) state->theta =  0.5*M_PI;
     // technically not necessary, but might avoid numeric instability
@@ -79,7 +94,7 @@ drag_right(int /*x*/, int /*y*/, int dx, int dy) {
     while (state->phi >= 2.0*M_PI) state->phi -= 2.0*M_PI;
 
 
-    state->phi -= 0.01f * dx;
+    state->phi -= 0.01f * dx  *momentum;
     update();
 }
 
@@ -178,7 +193,6 @@ motion(int x, int y) {
     if ((state->left_down || state->right_down || state->middle_down) && (abs(x - state->drag_start_x) + abs(y - state->drag_start_y) > 2)) {
         state->dragging = true;
     }
-
     if (state->dragging) {
         if (state->left_down) drag_left(x, y, x - state->last_x, y - state->last_y);
         if (state->right_down) drag_right(x, y, x - state->last_x, y - state->last_y);
@@ -201,6 +215,7 @@ scroll(int delta) {
 camera::camera(GLFWwindow* window) {
     state = new camera_state({});
 
+
     state->last_x = 0;
     state->last_y = 0;
     state->drag_start_x = 0;
@@ -210,8 +225,10 @@ camera::camera(GLFWwindow* window) {
     state->right_down = false;
     state->dragging = false;
 
+    state->period_mouse = 0.f;
+
     state->look_at = glm::vec3(0.f);
-    state->phi = 0.f;
+    state->phi = M_PI;
     state->theta = 0.f;
     state->radius = 5.f;
 
@@ -231,6 +248,17 @@ camera::~camera() {
 glm::mat4
 camera::view_matrix() const {
     return state->view_mat;
+}
+
+bool camera::is_not_dragging_w_momentum() {
+    return !(state->dragging) && (state->period_mouse != 0);
+}
+
+void camera::apply_after_momentum() {
+    if (state->period_mouse > 0.10001f) {
+        state->period_mouse -= 0.1f;
+        drag_right(0, 0, state->last_dx, state->last_dy);
+    }
 }
 
 glm::vec3
