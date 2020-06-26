@@ -110,16 +110,6 @@ main(int, char* argv[]) {
     int width, height, nrChannels;
     unsigned char* data_load = stbi_load("../data/kalk2.jpg",&width,&height,&nrChannels,0);
     if(data_load){
-        /*
-        float* data = new float[4 * width * height];
-        for (int j=0; j < height; ++j) {
-            for (int i=0; i < width; ++i) {
-                data[j*width*4 + i*4 + 0] = static_cast<float>(data_load[j*width*3 + i*3 + 0]) / 255;
-                data[j*width*4 + i*4 + 1] = static_cast<float>(data_load[j*width*3 + i*3 + 1]) / 255;
-                data[j*width*4 + i*4 + 2] = static_cast<float>(data_load[j*width*3 + i*3 + 2]) / 255;
-                data[j*width*4 + i*4 + 3] = 1.f;
-            }
-        }*/
 
         glTexImage2D(GL_TEXTURE_2D,0,GL_RGB32F,width, height,0,GL_RGB,GL_UNSIGNED_BYTE,data_load);
         glGenerateMipmap(GL_TEXTURE_2D);
