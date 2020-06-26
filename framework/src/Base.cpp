@@ -181,6 +181,11 @@ main(int, char* argv[]) {
 
         float current_Frame = glfwGetTime();
         delta_time =current_Frame -last_frame;
+        while (delta_time < 0.016666f) {
+            Sleep(10);
+            current_Frame = glfwGetTime();
+            delta_time = current_Frame - last_frame;
+        }
         last_frame=current_Frame;
 
         key_pressed(window,pressed);
@@ -359,12 +364,12 @@ void assign_momentum(unsigned int *pressed,float *momentum,float *period){
     for(int i = 0;i<6;i++) {
         if (pressed[i]) {
             if (period[i] < 5) {
-                period[i] += 0.01f;
+                period[i] += 0.1f;
             }
             momentum[i] = 0.04f * pow(period[i], 2);
         } else {
             if (period[i] > 0) {
-                period[i] -= 0.01f;
+                period[i] -= 0.1f;
             }
             momentum[i] = 0.04f * pow(period[i], 2);
         }

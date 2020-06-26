@@ -106,7 +106,7 @@ drag_right(int /*x*/, int /*y*/, int dx, int dy) {
     state->last_dy = dy;
     if (state->period_mouse < 3.0f) {
         if(state->dragging)
-            state->period_mouse += 0.05;
+            state->period_mouse += 0.1f;
     }
     momentum = 1.f/9.f * (float) pow((state->period_mouse),2);
 
@@ -282,7 +282,7 @@ bool camera::is_not_dragging_w_momentum() {
 
 void camera::apply_after_momentum() {
     if (state->period_mouse > 0.0f) {
-        state->period_mouse -= 0.01;
+        state->period_mouse -= 0.05f;
         drag_right_n(0, 0, state->last_dx, state->last_dy);
     }
 }
