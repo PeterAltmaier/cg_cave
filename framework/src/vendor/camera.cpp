@@ -76,16 +76,13 @@ drag_left(int /*x*/, int /*y*/, int /*dx*/, int /*dy*/) {
 void
 drag_right_n(int x, int /*y*/, int dx, int dy) {
     float momentum = 0;
-    //if (state->period_mouse < 3.0f) {
-    //    if(state->dragging)
-    //        state->period_mouse += 0.01;
-    //}
+
     float speed = 0.0f;
     if(x) {
         momentum = 1.f - 1.f / 9.f * (float) pow((state->period_mouse), 2);
-        speed = 0.01f;
+        speed = 0.0015f;
     }else{
-        speed = 0.001f;
+        speed = 0.0005f;
         momentum = 1.f / 9.f * (float) pow((state->period_mouse), 2);
     }
 
@@ -107,15 +104,15 @@ drag_right(int /*x*/, int /*y*/, int dx, int dy) {
     float momentum = 0;
     state->last_dx = dx;
     state->last_dy = dy;
-    if (state->period_mouse < 4.0f) {
+    if (state->period_mouse < 3.0f) {
         if(state->dragging)
-            state->period_mouse += 0.01;
+            state->period_mouse += 0.05;
     }
     momentum = 1.f/9.f * (float) pow((state->period_mouse),2);
 
     drag_right_n(1, 0,-dx,-dy);
 
-    state->theta -= 0.01f * dy;// * momentum;
+    state->theta -= 0.0015f * dy;// * momentum;
     if (state->theta < -0.5*M_PI) state->theta = -0.5*M_PI;
     if (state->theta >  0.5*M_PI) state->theta =  0.5*M_PI;
     // technically not necessary, but might avoid numeric instability
@@ -123,7 +120,7 @@ drag_right(int /*x*/, int /*y*/, int dx, int dy) {
     while (state->phi >= 2.0*M_PI) state->phi -= 2.0*M_PI;
 
 
-    state->phi -= 0.01f * dx;//  *momentum;
+    state->phi -= 0.0015f * dx;//  *momentum;
     update();
 }
 
@@ -285,7 +282,7 @@ bool camera::is_not_dragging_w_momentum() {
 
 void camera::apply_after_momentum() {
     if (state->period_mouse > 0.0f) {
-        state->period_mouse -= 0.005f;
+        state->period_mouse -= 0.01;
         drag_right_n(0, 0, state->last_dx, state->last_dy);
     }
 }
