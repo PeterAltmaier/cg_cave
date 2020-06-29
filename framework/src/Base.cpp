@@ -221,20 +221,8 @@ main(int, char* argv[]) {
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT,(void*)0);
 
-        if (blur_iterator == 0)
-            glAccum(GL_LOAD, 1.0 / n_acc);
-        else
-            glAccum(GL_ACCUM, 1.0 / n_acc);
 
-        blur_iterator++;
-
-        if (blur_iterator >= n_acc) {
-            blur_iterator = 0;
-            glAccum(GL_RETURN, 1.0);
-            glfwSwapBuffers(window);
-           
-        }
-        //glfwSwapBuffers(window);
+        glfwSwapBuffers(window);
         // process window events
         glfwPollEvents();
     }
