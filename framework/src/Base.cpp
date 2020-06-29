@@ -44,6 +44,10 @@ void key_pressed(GLFWwindow *window,unsigned int *pressed);
 
 int
 main(int, char* argv[]) {
+    //motion blur params
+    int n_acc = 5;
+    int blur_iterator = 0;
+
     //vertex data
     
     unsigned int num_vertices = PLANE_DEPTH * PLANE_WIDTH;
@@ -182,7 +186,7 @@ main(int, char* argv[]) {
         float current_Frame = glfwGetTime();
         delta_time =current_Frame -last_frame;
         while (delta_time < 0.016666f) {
-            Sleep(10);
+            Sleep(5);
             current_Frame = glfwGetTime();
             delta_time = current_Frame - last_frame;
         }
@@ -217,9 +221,20 @@ main(int, char* argv[]) {
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT,(void*)0);
 
+        if (blur_iterator == 0)
+            glAccum(GL_LOAD, 1.0 / n_acc);
+        else
+            glAccum(GL_ACCUM, 1.0 / n_acc);
 
+        blur_iterator++;
 
-        glfwSwapBuffers(window);
+        if (blur_iterator >= n_acc) {
+            blur_iterator = 0;
+            glAccum(GL_RETURN, 1.0);
+            glfwSwapBuffers(window);
+           
+        }
+        //glfwSwapBuffers(window);
         // process window events
         glfwPollEvents();
     }
