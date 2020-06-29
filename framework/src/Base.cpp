@@ -15,23 +15,18 @@ const int WINDOW_HEIGHT = 800;
 const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
-const unsigned int PLANE_WIDTH = 200; //TODO wenn hier angepasst, dann auch in base.vert anpassen
-const unsigned int PLANE_DEPTH = 200;
+const unsigned int PLANE_WIDTH = 300; 
+const unsigned int PLANE_DEPTH = 300;
 
 glm::mat4 proj_matrix;
 
-struct face {
-    glm::vec3 vertices[3];
-    glm::vec3 normal;
-    float space;
-};
 
 // called whenever the window gets resized
 void
 resizeCallback(GLFWwindow* window, int width, int height);
 
 void
-generatePlane(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator);
+generatePlane(float* vertices, unsigned int v_size, HeightGenerator generator);
 
 void
 generateIndices(unsigned int* indices, unsigned int ind_size);
@@ -41,18 +36,18 @@ main(int, char* argv[]) {
     //vertex data
     
     unsigned int num_vertices = PLANE_DEPTH * PLANE_WIDTH;
-    float* vertices_floor = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
+    float* vertices_floor = new float[PLANE_DEPTH * PLANE_WIDTH * 3];
     unsigned int num_rows = PLANE_DEPTH - 1;
     unsigned int ind_per_row = PLANE_WIDTH * 2 + 2;
     unsigned int total_indices = (PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2);
     unsigned int num_segments = num_rows * (PLANE_WIDTH - 1 + 2) * 2; //zusammen mit den depricated +2
     unsigned int *indices = new unsigned int[(PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2)];
-    face *faces_floor = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
+    //face *faces_floor = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float floor_roughness[] = { 24.f, 8.f, 2.f };
     float floor_amp_fit[] = { 3.f, 1.f, 0.3f };
 
-    float* vertices_ceil = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
-    face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
+    float* vertices_ceil = new float[PLANE_DEPTH * PLANE_WIDTH * 3];
+    //face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float ceil_roughness[] = { 20.f, 9.f, 3.f };
     float ceil_amp_fit[] = { 4.f, 1.f, 0.6f };
 
@@ -72,10 +67,10 @@ main(int, char* argv[]) {
     HeightGenerator generator_ceil(9.f, ceil_roughness, ceil_amp_fit, 3, -1, 0);
 
     //generate vertices floor
-    generatePlane(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_floor);
+    generatePlane(vertices_floor, num_vertices, generator_floor);
     
     //generate vertices ceiling
-    generatePlane(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_ceil);
+    generatePlane(vertices_ceil, num_vertices, generator_ceil);
 
     generateIndices(indices, total_indices);
 
@@ -102,13 +97,43 @@ main(int, char* argv[]) {
     int view_mat_loc = glGetUniformLocation(shaderProgram, "view");
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
     int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
-    int vertices_loc = glGetUniformLocation(shaderProgram, "vertices");
+    int widht_loc = glGetUniformLocation(shaderProgram, "PLANE_WIDTH");
+    int depth_loc = glGetUniformLocation(shaderProgram, "PLANE_DEPTH");
     
+    //load light_dir
     glm::vec3 light_dir = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
 
+    //upload width and depth data
+    glUniform1i(widht_loc, PLANE_WIDTH);
+    glUniform1i(depth_loc, PLANE_DEPTH);
+
+    //generate proj matrix
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
 
+    //create vertices_texture_floor
+    unsigned int vertices_floor_tex;
+    glGenTextures(1, &vertices_floor_tex);
+    //glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_1D, vertices_floor_tex);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB32F, PLANE_DEPTH*PLANE_WIDTH, 0, GL_RGB, GL_FLOAT, vertices_floor);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "vertices_tex"), 0);
+
+    //create vertices_texture_roof
+    //unsigned int vertices_ceil_tex;
+    //glGenTextures(1, &vertices_ceil_tex);
+    //glActiveTexture(GL_TEXTURE1);
+    //glBindTexture(GL_TEXTURE_1D, vertices_ceil_tex);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //
+    //glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB32F, PLANE_DEPTH, 0, GL_RGB, GL_FLOAT, vertices_ceil);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "vertices_tex"), 1);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -116,12 +141,11 @@ main(int, char* argv[]) {
     glGenVertexArrays(2,VAO);
     glBindVertexArray(VAO[0]);
 
-    unsigned int VBO_floor = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 6 * num_vertices * sizeof(float), vertices_floor);
+    unsigned int VBO_floor = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 3 * num_vertices * sizeof(float), vertices_floor);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   
     glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
     //delete [] vertices;
 
     unsigned int IBO_floor = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices* sizeof(unsigned int), indices);
@@ -129,12 +153,12 @@ main(int, char* argv[]) {
     //delete [] indices;
 
     glBindVertexArray(VAO[1]);
-    unsigned int VBO_ceil = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW,6 * num_vertices * sizeof(float), vertices_ceil);
+    unsigned int VBO_ceil = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW,3 * num_vertices * sizeof(float), vertices_ceil);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    //glEnableVertexAttribArray(1);
 
     unsigned int IBO_ceil = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices*sizeof(unsigned int), indices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO_ceil);
@@ -153,26 +177,30 @@ main(int, char* argv[]) {
         
         glUniform1i(growth_fac_loc, growth);
 
-        if (growth <= 30000)
+        if (growth <= 30000) //todo in shader anpassen
             growth++;
 
         glm::mat4 view;
         view = cam.view_matrix();
+
+        //floor render
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
-        glUniform1fv(vertices_loc, num_vertices, vertices_floor); //todo
         glBindVertexArray(VAO[0]);
 
-        glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
-        // render plane
+        glUniform1i(glGetUniformLocation(shaderProgram, "vertices_tex"), 0);
 
+        glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
+       
+
+        //ceil render
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_ceil[0][0]);
-        glUniform1fv(vertices_loc, num_vertices, vertices_ceil);
+       
         glBindVertexArray(VAO[1]);
-
+        //glUniform1i(glGetUniformLocation(shaderProgram, "vertices_tex"), 1);
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT,(void*)0);
 
 
@@ -194,91 +222,20 @@ void resizeCallback(GLFWwindow*, int width, int height)
     proj_matrix = glm::perspective(FOV, static_cast<float>(width) / height, NEAR_VALUE, FAR_VALUE);
 }
 
-void generatePlane(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator)
+void generatePlane(float* vertices, unsigned int v_size, HeightGenerator generator)
 {
     for (unsigned j = 0; j < PLANE_DEPTH; j++) {
 
         for (unsigned i = 0; i < PLANE_WIDTH; i++) {
-            vertices[(j * PLANE_WIDTH + i) * 6 + 0] = i;
-            vertices[(j * PLANE_WIDTH + i) * 6 + 1] = generator.generateHeight(i, j);
-            vertices[(j * PLANE_WIDTH + i) * 6 + 2] = j;
+            vertices[(j * PLANE_WIDTH + i) * 3 + 0] = i;
+            vertices[(j * PLANE_WIDTH + i) * 3 + 1] = generator.generateHeight(i, j);
+            vertices[(j * PLANE_WIDTH + i) * 3 + 2] = j;
 
         }
     }
     //todo test
     return;
-
-    //flächen und deren Normale berechnen
-    for (unsigned z = 0; z < PLANE_DEPTH - 1; z++) {
-        for (unsigned x = 0; x < PLANE_WIDTH - 1; x++) {
-            //coords rausholen und in faces speichern
-
-            //pro Vertex
-            //erstes Dreieck
-            unsigned int face_index = (z * (PLANE_WIDTH - 1) + x) * 2 + 0;
-            faces[face_index].vertices[0] = glm::vec3(x, vertices[(z * PLANE_DEPTH + x) * 6 + 1], z);
-            faces[face_index].vertices[1] = glm::vec3(x, vertices[((z + 1) * PLANE_DEPTH + x) * 6 + 1], z + 1);
-            faces[face_index].vertices[2] = glm::vec3(x + 1, vertices[((z + 1) * PLANE_DEPTH + x + 1) * 6 + 1], z + 1);
-            faces[face_index].normal = glm::cross(faces[face_index].vertices[1] - faces[face_index].vertices[0], faces[face_index].vertices[2] - faces[face_index].vertices[0]);
-            faces[face_index].space = 0.5f * glm::length(faces[face_index].normal);
-            faces[face_index].normal = glm::normalize(faces[face_index].normal);
-
-            //zweites Dreieck
-            face_index = (z * (PLANE_WIDTH - 1) + x) * 2 + 1;
-            faces[face_index].vertices[0] = glm::vec3(x, vertices[(z * PLANE_DEPTH + x) * 6 + 1], z);
-            faces[face_index].vertices[1] = glm::vec3(x + 1, vertices[((z)*PLANE_DEPTH + x + 1) * 6 + 1], z);
-            faces[face_index].vertices[2] = glm::vec3(x + 1, vertices[((z + 1) * PLANE_DEPTH + x + 1) * 6 + 1], z + 1);
-            faces[face_index].normal = -glm::cross(faces[face_index].vertices[1] - faces[face_index].vertices[0], faces[face_index].vertices[2] - faces[face_index].vertices[0]);
-            faces[face_index].space = 0.5f * glm::length(faces[face_index].normal);
-            faces[face_index].normal = glm::normalize(faces[face_index].normal);
-
-        }
-    }
-
-    //vertex normalen berechnen aus gewichtetem Durchschnitt, die vertices am Rand müssen gesondert betrachtet werden, erstmal egal, fürs große ganze
-    //todo Randvertices normalen berechnen
-    //jeder innere vertex grenzt an sechs verschiedene Dreiecke
-    for (unsigned z = 1; z < PLANE_DEPTH - 1; z++) {
-        for (unsigned x = 1; x < PLANE_WIDTH - 1; x++) {
-            float total_space = 0.f;
-            glm::vec3 normal = glm::vec3(0, 0, 0);
-            unsigned face_index;
-            //Dreiecke oben links von Punkt:
-            //1.
-            face_index = ((z - 1) * (PLANE_WIDTH - 1) + x - 1) * 2;
-            total_space += faces[face_index].space;
-            normal += faces[face_index].space * faces[face_index].normal;
-            //2.
-            face_index = ((z - 1) * (PLANE_WIDTH - 1) + x - 1) * 2 + 1;
-            total_space += faces[face_index].space;
-            normal += faces[face_index].space * faces[face_index].normal;
-            //Dreieck oben rechts von Punkt:
-            //1.
-            face_index = ((z - 1) * (PLANE_WIDTH - 1) + x) * 2;
-            total_space += faces[face_index].space;
-            normal += faces[face_index].space * faces[face_index].normal;
-            //Dreieck unten links von Punkt:
-            //1.
-            face_index = (z * (PLANE_WIDTH - 1) + x - 1) * 2 + 1;
-            total_space += faces[face_index].space;
-            normal += faces[face_index].space * faces[face_index].normal;
-            //Dreiecke unten rechts von Punkt:
-            //1.
-            face_index = (z * (PLANE_WIDTH - 1) + x) * 2;
-            total_space += faces[face_index].space;
-            normal += faces[face_index].space * faces[face_index].normal;
-            //2.
-            face_index = (z * (PLANE_WIDTH - 1) + x) * 2 + 1;
-            total_space += faces[face_index].space;
-            normal += faces[face_index].space * faces[face_index].normal;
-
-            normal /= total_space;
-            normal = glm::normalize(normal);
-            vertices[(z * PLANE_WIDTH + x) * 6 + 3] = normal.x;
-            vertices[(z * PLANE_WIDTH + x) * 6 + 4] = normal.y;
-            vertices[(z * PLANE_WIDTH + x) * 6 + 5] = normal.z;
-        }
-    }
+    
 }
 
 void
