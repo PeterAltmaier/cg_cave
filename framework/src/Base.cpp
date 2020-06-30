@@ -45,7 +45,7 @@ void key_pressed(GLFWwindow *window,unsigned int *pressed);
 
 void generateVertices(float *vertices, HeightGenerator generator);
 
-void growth_plane(float* vertices, float growth_factor, float growth_range);
+void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, float growth_range);
 
 int
 main(int, char* argv[]) {
@@ -54,6 +54,9 @@ main(int, char* argv[]) {
     
     unsigned int num_vertices = PLANE_DEPTH * PLANE_WIDTH;
     float* vertices_floor = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
+
+    float* vertices_tmp = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
+
     unsigned int num_rows = PLANE_DEPTH - 1;
     unsigned int ind_per_row = PLANE_WIDTH * 2 + 2;
     unsigned int total_indices = (PLANE_DEPTH - 1) * (PLANE_WIDTH * 2 + 2);
@@ -64,6 +67,7 @@ main(int, char* argv[]) {
     float floor_amp_fit[] = { 3.f, 1.f, 0.3f };
 
     float* vertices_ceil = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
+
     face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float ceil_roughness[] = { 20.f,9.f, 3.f };
     float ceil_amp_fit[] = { 4.f, 1.f, 0.6f };
@@ -220,20 +224,20 @@ main(int, char* argv[]) {
         //Growth
         if(growth_factor<=1000) {
             glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
-            //growth_plane(vertices_floor, growth_factor, 1000.f);
-            calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
+            growth_plane(vertices_floor, vertices_tmp, growth_factor, 1000.f);
+            calculateNormals(vertices_tmp, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                              generator_floor);
 
             glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
-            glBufferSubData(GL_ARRAY_BUFFER,0,6 * num_vertices * sizeof(float),vertices_floor);
+            glBufferSubData(GL_ARRAY_BUFFER, 0 ,6 * num_vertices * sizeof(float),vertices_tmp);
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
-            //growth_plane(vertices_ceil, growth_factor, 1000.f);
-            calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
+            growth_plane(vertices_ceil, vertices_tmp, growth_factor, 1000.f);
+            calculateNormals(vertices_tmp, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                              generator_ceil);
 
             glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
-            glBufferSubData(GL_ARRAY_BUFFER,0,6 * num_vertices * sizeof(float),vertices_ceil);
+            glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_tmp);
             growth_factor++;
         }
         glBindVertexArray(VAO[0]);
@@ -267,11 +271,11 @@ void resizeCallback(GLFWwindow*, int width, int height)
     proj_matrix = glm::perspective(FOV, static_cast<float>(width) / height, NEAR_VALUE, FAR_VALUE);
 }
 
-void growth_plane(float* vertices, float growth_factor, float growth_range) {
+void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, float growth_range) {
     if (growth_factor < growth_range) {
         for (int z = 0; z < PLANE_DEPTH; z++) {
             for (int x = 0; x < PLANE_DEPTH; x++) {
-                vertices[(z * PLANE_WIDTH + x) * 6 + 1] *= growth_factor / growth_range;
+                tmp_vertices[(z * PLANE_WIDTH + x) * 6 + 1] =  growth_factor / growth_range * vertices[(z * PLANE_WIDTH + x) * 6 + 1];
             }
         }
     }
