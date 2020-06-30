@@ -45,11 +45,15 @@ main(int, char* argv[]) {
     //face *faces_floor = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float floor_roughness[] = { 24.f, 8.f, 2.f };
     float floor_amp_fit[] = { 3.f, 1.f, 0.3f };
+   
+    
 
     float* vertices_ceil = new float[PLANE_DEPTH * PLANE_WIDTH * 3];
     //face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float ceil_roughness[] = { 20.f, 9.f, 3.f };
     float ceil_amp_fit[] = { 4.f, 1.f, 0.6f };
+  
+    
 
     //Plane position floor
     glm::vec3 pos_floor = glm::vec3(0.0, 0.0, 0.0);
@@ -63,8 +67,8 @@ main(int, char* argv[]) {
 
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
 
-    HeightGenerator generator_floor(8.f, floor_roughness, floor_amp_fit, 3, 1, 0);
-    HeightGenerator generator_ceil(9.f, ceil_roughness, ceil_amp_fit, 3, -1, 0);
+    HeightGenerator generator_floor(8.f, floor_roughness, floor_amp_fit, 3, 1, 20);
+    HeightGenerator generator_ceil(9.f, ceil_roughness, ceil_amp_fit, 3, -1, 20);
 
     //generate vertices floor
     generatePlane(vertices_floor, num_vertices, generator_floor);
@@ -99,6 +103,7 @@ main(int, char* argv[]) {
     int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
     int widht_loc = glGetUniformLocation(shaderProgram, "PLANE_WIDTH");
     int depth_loc = glGetUniformLocation(shaderProgram, "PLANE_DEPTH");
+    int vertices_loc = glGetUniformLocation(shaderProgram, "vertices_tex");
     
     //load light_dir
     glm::vec3 light_dir = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
@@ -112,15 +117,24 @@ main(int, char* argv[]) {
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
 
     //create vertices_texture_floor
+    //glEnable(GL_TEXTURE_1D);
     unsigned int vertices_floor_tex;
     glGenTextures(1, &vertices_floor_tex);
     //glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_1D, vertices_floor_tex);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB32F, PLANE_DEPTH*PLANE_WIDTH, 0, GL_RGB, GL_FLOAT, vertices_floor);
+    std::cout << glGetError() << std::endl;
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB32F, PLANE_DEPTH * PLANE_WIDTH, 0, GL_RGB, GL_FLOAT, vertices_floor);
+    std::cout << glGetError() << std::endl; // returns 0 (no error)
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAX_LEVEL, 0);
+    glActiveTexture(GL_TEXTURE1);
+    std::cout << glGetError() << std::endl; 
+    //glBindTexture(GL_TEXTURE_1D, 1);
+    glUniform1i(vertices_loc, 1);
+    std::cout << glGetError() << std::endl; // returns 0 (no error)
     //glUniform1i(glGetUniformLocation(shaderProgram, "vertices_tex"), 0);
 
     //create vertices_texture_roof
@@ -189,7 +203,7 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
         glBindVertexArray(VAO[0]);
 
-        glUniform1i(glGetUniformLocation(shaderProgram, "vertices_tex"), 0);
+        //glUniform1i(glGetUniformLocation(shaderProgram, "vertices_tex"), 0);
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
        
@@ -227,9 +241,9 @@ void generatePlane(float* vertices, unsigned int v_size, HeightGenerator generat
     for (unsigned j = 0; j < PLANE_DEPTH; j++) {
 
         for (unsigned i = 0; i < PLANE_WIDTH; i++) {
-            vertices[(j * PLANE_WIDTH + i) * 3 + 0] = i;
-            vertices[(j * PLANE_WIDTH + i) * 3 + 1] = generator.generateHeight(i, j);
-            vertices[(j * PLANE_WIDTH + i) * 3 + 2] = j;
+            vertices[(j * PLANE_WIDTH + i) * 3 + 0] = (float)i / (float)PLANE_DEPTH ;
+            vertices[(j * PLANE_WIDTH + i) * 3 + 1] = generator.generateHeight(i, j) / (float) PLANE_DEPTH;
+            vertices[(j * PLANE_WIDTH + i) * 3 + 2] = (float)j /(float) PLANE_DEPTH;
 
         }
     }
