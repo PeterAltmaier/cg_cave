@@ -101,4 +101,5 @@ void resizeCallback(GLFWwindow*, int width, int height)
 {
     // set new width and height as viewport size
     glViewport(0, 0, width, height);
+    proj_matrix = glm::perspective(FOV, static_cast<float>(width) / height, NEAR_VALUE, FAR_VALUE);
 }
