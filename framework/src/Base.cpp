@@ -17,6 +17,7 @@ const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
 const unsigned int PLANE_WIDTH = 300;
 const unsigned int PLANE_DEPTH = 300;
+const unsigned int NUM_STICKS = 30;
 
 glm::mat4 proj_matrix;
 
@@ -65,6 +66,10 @@ main(int, char* argv[]) {
     face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float ceil_roughness[] = { 20.f,9.f, 3.f };
     float ceil_amp_fit[] = { 4.f, 1.f, 0.6f };
+
+    //sticks data
+    float* sticks_data = new float[NUM_STICKS*3];
+
 
     //camera variables
     float delta_time = 0.0f;
@@ -221,8 +226,20 @@ main(int, char* argv[]) {
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT,(void*)0);
 
+        if (blur_iterator == 0)
+            glAccum(GL_LOAD, 1.0 / n_acc);
+        else
+            glAccum(GL_ACCUM, 1.0 / n_acc);
 
-        glfwSwapBuffers(window);
+        blur_iterator++;
+
+        if (blur_iterator >= n_acc) {
+            blur_iterator = 0;
+            glAccum(GL_RETURN, 1.0);
+            glfwSwapBuffers(window);
+           
+        }
+        //glfwSwapBuffers(window);
         // process window events
         glfwPollEvents();
     }
@@ -238,6 +255,17 @@ void resizeCallback(GLFWwindow*, int width, int height)
     glViewport(0, 0, width, height);
     proj_matrix = glm::perspective(FOV, static_cast<float>(width) / height, NEAR_VALUE, FAR_VALUE);
 }
+
+void growth_plane(float* vertices, float growth_factor, float growth_range) {
+    if (growth_factor < growth_range) {
+        for (int z = 0; z < PLANE_DEPTH; z++) {
+            for (int x = 0; x < PLANE_DEPTH; x++) {
+                vertices[(z * PLANE_WIDTH + x) * 6 + 1] *= growth_factor / growth_range;
+            }
+        }
+    }
+}
+
 
 void generatePlane(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator)
 {
