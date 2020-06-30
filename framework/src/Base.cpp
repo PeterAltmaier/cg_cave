@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include <chrono>
 #include <glm/gtx/transform.hpp>
 #include "common.hpp"
@@ -9,15 +11,16 @@
 #include <iterator>
 #include "HeightGenerator.h"
 #include "stb_image.h"
+#include <math.h>
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 800;
 const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
-const unsigned int PLANE_WIDTH = 300;
-const unsigned int PLANE_DEPTH = 300;
-const unsigned int NUM_STICKS = 30;
+const unsigned int PLANE_WIDTH = 400;
+const unsigned int PLANE_DEPTH = 400;
+const unsigned int NUM_STICKS = 60;
 
 glm::mat4 proj_matrix;
 
@@ -44,6 +47,8 @@ void assign_momentum(unsigned int *pressed,float *momentum,float *period);
 void key_pressed(GLFWwindow *window,unsigned int *pressed);
 
 void generateVertices(float *vertices, HeightGenerator generator);
+
+void generateSticks(float* sticks_data);
 
 void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, float growth_range);
 
@@ -112,6 +117,10 @@ main(int, char* argv[]) {
     calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_ceil);
 
     generateIndices(indices, total_indices);
+
+    generateSticks(sticks_data);
+    //generate stick data
+    
 
     GLFWwindow* window = initOpenGL(WINDOW_WIDTH, WINDOW_HEIGHT, argv[0]);
     glfwSetFramebufferSizeCallback(window, resizeCallback);
@@ -404,6 +413,98 @@ generateIndices(unsigned int* indices, unsigned int ind_size) {
         else {
             indices[i] = indices[i - 1];
         }
+    }
+}
+
+void generateSticks(float* sticks_data) {
+    int tmp_sticks = NUM_STICKS;
+    float x_base = 0.f;
+    float z_base = 0.f;
+    float radius_base = 0.f;
+
+    float x_child = 0.f;
+    float z_child = 0.f;
+    float radius_child = 0.f;
+
+    int sticks_cnt_tmp = 0;
+    float dist_center;
+    int running_stick_index = 0;
+
+    while (tmp_sticks > 0) {
+        //generate base circle
+
+        if (tmp_sticks <= 0)
+            break;
+
+        //generate patch center x, z in interval [20, PLANEWIDTH -20]
+        srand(time(NULL));
+        x_base = rand() % (PLANE_WIDTH - 40) + 20;
+        z_base = rand() % (PLANE_WIDTH - 40) + 20;
+
+        //generate radius from 2 to 7 as a float
+        radius_base = (float)(rand()) / (float)RAND_MAX * (float)(rand() % 6) + 2;
+
+        //generate sticks_cnt_tmp from 3 to 6
+        sticks_cnt_tmp = rand() % 4 + 3;
+        if (tmp_sticks < sticks_cnt_tmp) {
+            sticks_cnt_tmp = tmp_sticks;
+        }
+        tmp_sticks -= sticks_cnt_tmp;
+
+        //generate sticks_pos in circle and radius of stick
+        for (int i = sticks_cnt_tmp; i > 0; i--) {
+            //pos
+            float dist_center = fmod((float)(rand()), radius_base);
+            float angle = fmod((float)rand(), 2 * M_PI);
+            //xpos
+            sticks_data[running_stick_index * 3 + 0] = x_base + dist_center * cos(angle);
+            //zpos
+            sticks_data[running_stick_index * 3 + 1] = z_base + dist_center * sin(angle);
+            //radius from 0.9 to 1.5
+            sticks_data[running_stick_index * 3 + 2] = fmod((float)rand() / (float)RAND_MAX, 0.601f) + 0.9f;
+
+            running_stick_index++;
+        }
+
+        //generate two child circles, with center within base circle
+        for (int j = 0; j < 2; j++) {
+            if (tmp_sticks <= 0)
+                break;
+
+            //generate sub center x, z on base_circle
+            srand(time(NULL));
+            float angle_center = fmod((float)rand(), 2 * M_PI);
+            x_child = x_base + radius_base * cos(angle_center);
+            z_child = z_base + radius_base * sin(angle_center);
+
+            //generate radius from 2 to 6 as a float
+            radius_child = (float)(rand()) / (float)RAND_MAX * (float)(rand() % 5) + 2;
+
+            //generate sticks_cnt_tmp from 3 to 6
+            sticks_cnt_tmp = rand() % 4 + 3;
+            if (tmp_sticks < sticks_cnt_tmp) {
+                sticks_cnt_tmp = tmp_sticks;
+            }
+            tmp_sticks -= sticks_cnt_tmp;
+
+            //generate sticks_pos in circle and radius of stick
+            for (int i = sticks_cnt_tmp; i > 0; i--) {
+                //pos
+                float dist_center = fmod((float)(rand()), radius_child);
+                float angle = fmod((float)rand(), 2 * M_PI);
+                //xpos
+                sticks_data[running_stick_index * 3 + 0] = x_child + dist_center * cos(angle);
+                //zpos                                       
+                sticks_data[running_stick_index * 3 + 1] = z_child + dist_center * sin(angle);
+                //radius from 0.9 to 1.5
+                sticks_data[running_stick_index * 3 + 2] = fmod((float)rand() / (float)RAND_MAX, 0.601f) + 0.9f;
+
+                running_stick_index++;
+            }
+        }
+
+
+
     }
 }
 
