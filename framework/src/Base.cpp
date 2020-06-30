@@ -102,19 +102,22 @@ main(int, char *argv[]) {
     camera cam(window);
 
 
-    glEnable(GL_LIGHTING);
-
-    float light_ambient[] = {0.f, 0.f, 0.f, 1.f};
-    float light_diffuse[] = {1.f, 1.f, 1.f, 1.f};
-    float light_specular[] = {1.f, 1.f, 1.f, 1.f};
-    float light_position[] = {1.f, 1.f, 1.f, 0.f};
-
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-
-    glEnable(GL_LIGHT0);
+//    glEnable(GL_LIGHTING);
+//
+//    float light_ambient[] = {0.f, 0.f, 0.f, 1.f};
+//    float light_diffuse[] = {1.f, 1.f, 1.f, 1.f};
+//    float light_specular[] = {1.f, 1.f, 1.f, 1.f};
+//    float light_position[] = {PLANE_DEPTH/2, 25, PLANE_WIDTH/2, 0.f};
+//
+//    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+//    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+//    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+//    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+//    glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 2.f);
+//    glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 1.f);
+//    glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.5);
+//
+//    glEnable(GL_LIGHT0);
 
 
     unsigned int texture;
@@ -153,7 +156,7 @@ main(int, char *argv[]) {
     int model_mat_loc = glGetUniformLocation(shaderProgram, "model");
     int view_mat_loc = glGetUniformLocation(shaderProgram, "view");
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
-    int light_dir_loc = glGetUniformLocation(shaderProgram, "light_pos");
+    int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
     int tex_loc = glGetUniformLocation(shaderProgram, "tex");
     glm::vec3 light_dir = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
