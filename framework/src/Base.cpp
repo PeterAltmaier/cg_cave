@@ -102,6 +102,21 @@ main(int, char *argv[]) {
     camera cam(window);
 
 
+    glEnable(GL_LIGHTING);
+
+    float light_ambient[] = {0.f, 0.f, 0.f, 1.f};
+    float light_diffuse[] = {1.f, 1.f, 1.f, 1.f};
+    float light_specular[] = {1.f, 1.f, 1.f, 1.f};
+    float light_position[] = {1.f, 1.f, 1.f, 0.f};
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+    glEnable(GL_LIGHT0);
+
+
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
