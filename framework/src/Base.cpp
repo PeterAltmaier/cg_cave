@@ -219,16 +219,20 @@ main(int, char* argv[]) {
 
         //Growth
         if(growth_factor<=1000) {
-            growth_plane(vertices_floor, growth_factor, 1000.f);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
+            //growth_plane(vertices_floor, growth_factor, 1000.f);
             calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                              generator_floor);
-            glBindVertexArray(VAO[0]);
+
+            glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
             glBufferSubData(GL_ARRAY_BUFFER,0,6 * num_vertices * sizeof(float),vertices_floor);
 
-            growth_plane(vertices_ceil, growth_factor, 1000.f);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
+            //growth_plane(vertices_ceil, growth_factor, 1000.f);
             calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                              generator_ceil);
-            glBindVertexArray(VAO[1]);
+
+            glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
             glBufferSubData(GL_ARRAY_BUFFER,0,6 * num_vertices * sizeof(float),vertices_ceil);
             growth_factor++;
         }
