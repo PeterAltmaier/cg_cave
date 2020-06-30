@@ -32,7 +32,7 @@ void
 resizeCallback(GLFWwindow* window, int width, int height);
 
 void
-generatePlane(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator);
+calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator);
 
 void
 generateIndices(unsigned int *indices, unsigned int ind_size);
@@ -43,11 +43,12 @@ void assign_momentum(unsigned int *pressed,float *momentum,float *period);
 
 void key_pressed(GLFWwindow *window,unsigned int *pressed);
 
+void generateVertices(float *vertices, HeightGenerator generator);
+
+void growth_plane(float* vertices, float growth_factor, float growth_range);
+
 int
 main(int, char* argv[]) {
-    //motion blur params
-    int n_acc = 5;
-    int blur_iterator = 0;
 
     //vertex data
     
@@ -95,10 +96,13 @@ main(int, char* argv[]) {
     HeightGenerator generator_ceil(9.f, ceil_roughness, ceil_amp_fit, 3, -1, 0);
 
     //generate vertices floor
-    generatePlane(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_floor);
-    
+    generateVertices(vertices_floor, generator_floor);
+    calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
+                     generator_floor);
+
     //generate vertices ceiling
-    generatePlane(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_ceil);
+    generateVertices(vertices_ceil, generator_ceil);
+    calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_ceil);
 
     generateIndices(indices, total_indices);
 
@@ -158,7 +162,7 @@ main(int, char* argv[]) {
     glGenVertexArrays(2,VAO);
     glBindVertexArray(VAO[0]);
 
-    unsigned int VBO_floor = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, 6 * num_vertices * sizeof(float), vertices_floor);
+    unsigned int VBO_floor = makeBuffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, 6 * num_vertices * sizeof(float), vertices_floor);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
@@ -166,21 +170,21 @@ main(int, char* argv[]) {
     glEnableVertexAttribArray(1);
     //delete [] vertices;
 
-    unsigned int IBO_floor = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices* sizeof(unsigned int), indices);
+    unsigned int IBO_floor = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW, total_indices* sizeof(unsigned int), indices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO_floor);
     //delete [] indices;
 
     glBindVertexArray(VAO[1]);
-    unsigned int VBO_ceil = makeBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW,6 * num_vertices * sizeof(float), vertices_ceil);
+    unsigned int VBO_ceil = makeBuffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW,6 * num_vertices * sizeof(float), vertices_ceil);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    unsigned int IBO_ceil = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, total_indices*sizeof(unsigned int), indices);
+    unsigned int IBO_ceil = makeBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW, total_indices*sizeof(unsigned int), indices);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO_ceil);
-
+    float growth_factor = 0.0f;
     // rendering loop
     while (glfwWindowShouldClose(window) == false) {
         // set background color...
@@ -212,7 +216,22 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
-       
+
+        //Growth
+        if(growth_factor<=1000) {
+            growth_plane(vertices_floor, growth_factor, 1000.f);
+            calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
+                             generator_floor);
+            glBindVertexArray(VAO[0]);
+            glBufferSubData(GL_ARRAY_BUFFER,0,6 * num_vertices * sizeof(float),vertices_floor);
+
+            growth_plane(vertices_ceil, growth_factor, 1000.f);
+            calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
+                             generator_ceil);
+            glBindVertexArray(VAO[1]);
+            glBufferSubData(GL_ARRAY_BUFFER,0,6 * num_vertices * sizeof(float),vertices_ceil);
+            growth_factor++;
+        }
         glBindVertexArray(VAO[0]);
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);
@@ -226,21 +245,9 @@ main(int, char* argv[]) {
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT,(void*)0);
 
-        if (blur_iterator == 0)
-            glAccum(GL_LOAD, 1.0 / n_acc);
-        else
-            glAccum(GL_ACCUM, 1.0 / n_acc);
-
-        blur_iterator++;
-
-        if (blur_iterator >= n_acc) {
-            blur_iterator = 0;
-            glAccum(GL_RETURN, 1.0);
-            glfwSwapBuffers(window);
-           
-        }
-        //glfwSwapBuffers(window);
+        glfwSwapBuffers(window);
         // process window events
+
         glfwPollEvents();
     }
 
@@ -266,9 +273,7 @@ void growth_plane(float* vertices, float growth_factor, float growth_range) {
     }
 }
 
-
-void generatePlane(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator)
-{
+void generateVertices(float *vertices, HeightGenerator generator){
     for (unsigned j = 0; j < PLANE_DEPTH; j++) {
 
         for (unsigned i = 0; i < PLANE_WIDTH; i++) {
@@ -278,6 +283,21 @@ void generatePlane(float* vertices, unsigned int v_size, face* faces, unsigned i
 
         }
     }
+}
+
+void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator)
+{
+    /*
+    for (unsigned j = 0; j < PLANE_DEPTH; j++) {
+
+        for (unsigned i = 0; i < PLANE_WIDTH; i++) {
+            vertices[(j * PLANE_WIDTH + i) * 6 + 0] = i;
+            vertices[(j * PLANE_WIDTH + i) * 6 + 1] = generator.generateHeight(i, j);
+            vertices[(j * PLANE_WIDTH + i) * 6 + 2] = j;
+
+        }
+    }
+    */
 
     //flächen und deren Normale berechnen
     for (unsigned z = 0; z < PLANE_DEPTH - 1; z++) {
