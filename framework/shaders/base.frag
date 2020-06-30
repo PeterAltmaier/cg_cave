@@ -1,7 +1,6 @@
 #version 330 core
 
 in vec3 interp_normal;
-in vec4 interp_color;
 in vec3 interp_light_dir;
 
 out vec4 frag_color;
@@ -15,7 +14,7 @@ uniform float refractionIndex;
 uniform vec4 diffuse; // diffuse part as color
 uniform vec4 specular; // specular part as color
 
-out vec4 FragColor;
+//out vec4 FragColor;
 
 const float pi = 3.14159265359;
 
@@ -92,10 +91,11 @@ float orennayarTerm(float lambert, vec3 n, vec3 l) {
 
 void main()
 {
+	vec4 FragColor;
 	float light = dot(interp_normal, light_dir);
 	vec2 tc = getUVCoordinates(normalize(interp_normal));
 	FragColor = texture2D(tex,tc);
-	FragColor = clamp(light, 0.1, 1.0) * FragColor;
+//	FragColor = clamp(light, 0.1, 1.0) * FragColor;
 	// Lambertian reflection term
 	float diffuseTerm = cdot(interp_normal, interp_light_dir);
 	// define the diffuse part to be Lambertian - unless we choose Oren-Nayer
@@ -108,7 +108,7 @@ void main()
 	// as specular part we compute the Cook-Torrance term
 	float specularTerm = cooktorranceTerm(interp_normal, interp_light_dir);
 	// combine both terms (diffuse+specular) using our material properties (colors)
-	frag_color = vec4(vec3(clamp(diffuse * diffuseTerm + specular * specularTerm, 0.0, 1.0)), 1);
+	frag_color = vec4(vec3(clamp(diffuse * diffuseTerm + specular * specularTerm, 0.0, 1.0)*FragColor), 1);
 }
 
 vec2 getUVCoordinates(vec3 p){
