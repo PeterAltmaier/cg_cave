@@ -95,6 +95,9 @@ main(int, char* argv[]) {
 
     glUseProgram(shaderProgram);
 
+    int buffer;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &buffer);
+    std::cout << buffer;
 
     int growth_fac_loc = glGetUniformLocation(shaderProgram, "growth_fac");
     int model_mat_loc = glGetUniformLocation(shaderProgram, "model");
