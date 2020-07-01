@@ -473,11 +473,11 @@ void growSticks(float* vertices, float* sticks_data, int time_growth) {
         else if (radius < 2.3f) {
             for (int z_add = -2; z_add < 3; z_add++) {
                 if(z_add != 0)
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growthf;
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth;
             }
             for (int x_add = -2; x_add < 3; x_add++ ) {
                 if(x_add != 0)
-                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growthf;
+                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
             }
 
             for (int z_add = -1; z_add < 2; z_add += 2) {
