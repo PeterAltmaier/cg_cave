@@ -78,7 +78,7 @@ main(int, char* argv[]) {
 
     face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float ceil_roughness[] = { 20.f,9.f, 3.f };
-    float ceil_amp_fit[] = { 4.f, 1.f, 0.6f };
+    float ceil_amp_fit [] = { 4.f, 1.f, 0.6f };
 
     //sticks data
     float* sticks_data = new float[NUM_STICKS*3];
@@ -122,7 +122,7 @@ main(int, char* argv[]) {
 
     generateSticks(sticks_data);
     //generate stick data
-    
+
 
     GLFWwindow* window = initOpenGL(WINDOW_WIDTH, WINDOW_HEIGHT, argv[0]);
     glfwSetFramebufferSizeCallback(window, resizeCallback);
@@ -418,6 +418,7 @@ generateIndices(unsigned int* indices, unsigned int ind_size) {
     }
 }
 
+//todo: Anpassen der Geschwindigkeit funktioniert in for_schleifen nicht; vielleicht besser doch Anweisungen
 void growSticks(float* vertices, float* sticks_data, int time_growth) {
     float radius, growth_fac;
     int  x_pos, z_pos;
@@ -441,10 +442,10 @@ void growSticks(float* vertices, float* sticks_data, int time_growth) {
             //"kreuz" hochziehen
             
             for (int z_add = -1; z_add < 2; z_add += 2) {
-                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth;
+                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth*1.1f;
             }
             for (int x_add = -1; x_add < 2; x_add+=2) {
-                vertices[((z_pos) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                vertices[((z_pos) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth*1.1f;
             }
         }
         //mit diagonale
@@ -472,16 +473,16 @@ void growSticks(float* vertices, float* sticks_data, int time_growth) {
         else if (radius < 2.3f) {
             for (int z_add = -2; z_add < 3; z_add++) {
                 if(z_add != 0)
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth;
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growthf;
             }
             for (int x_add = -2; x_add < 3; x_add++ ) {
                 if(x_add != 0)
-                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growthf;
             }
 
             for (int z_add = -1; z_add < 2; z_add += 2) {
                 for (int x_add = -1; x_add < 2; x_add += 2) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth*1.0f;
                 }
             }
         }
@@ -498,20 +499,20 @@ void growSticks(float* vertices, float* sticks_data, int time_growth) {
 
             for (int z_add = -1; z_add < 2; z_add += 2) {
                 for (int x_add = -1; x_add < 2; x_add += 2) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth*1.0f;
                 }
             }
 
             //plus "Halbdiagonale"
             //seite
             for (int z_add = -2; z_add < 3; z_add += 4) {
-                 vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth;
-                 vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 - 1] += growth_fac * time_growth;
+                 vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth*0.9f;
+                 vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 - 1] += growth_fac * time_growth*0.9f;
             }
 
             for (int x_add = -2; x_add < 3; x_add += 4) {
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
-                vertices[((z_pos -1) * PLANE_DEPTH + x_pos + x_add) * 6 - 1] += growth_fac * time_growth;
+                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth*0.9f;
+                vertices[((z_pos -1) * PLANE_DEPTH + x_pos + x_add) * 6 - 1] += growth_fac * time_growth*0.9f;
             }
 
         }
@@ -531,25 +532,25 @@ void growSticks(float* vertices, float* sticks_data, int time_growth) {
             //diagonale
             for (int z_add = -1; z_add < 2; z_add += 2) {
                 for (int x_add = -1; x_add < 2; x_add += 2) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth*1.0f;
                 }
             }
 
             //plus "Halbdiagonale"
             //seite
             for (int z_add = -2; z_add < 3; z_add += 4) {
-                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth;
-                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 - 1] += growth_fac * time_growth;
+                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth*0.9f;
+                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 - 1] += growth_fac * time_growth*0.9f;
             }
 
             for (int x_add = -2; x_add < 3; x_add += 4) {
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + x_add) * 6 - 1] += growth_fac * time_growth;
+                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth*0.9f;
+                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + x_add) * 6 - 1] += growth_fac * time_growth*0.9f;
             }
 
             for (int z_add = -2; z_add < 3; z_add += 4) {
                 for (int x_add = -2; x_add < 3; x_add += 4) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth*0.9f;
                 }
             }
 
