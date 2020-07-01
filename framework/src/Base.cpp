@@ -52,6 +52,8 @@ void generateSticks(float* sticks_data);
 
 void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, float growth_range);
 
+void growSticks(float* vertices, float* sticks_data, int growth_iter);
+
 int
 main(int, char* argv[]) {
 
@@ -416,6 +418,145 @@ generateIndices(unsigned int* indices, unsigned int ind_size) {
     }
 }
 
+void growSticks(float* vertices, float* sticks_data, int time_growth) {
+    float radius, growth_fac;
+    int  x_pos, z_pos;
+
+    //iterate over sticks
+    for (int i = 0; i < NUM_STICKS; i++) {
+        //stick data
+        x_pos = sticks_data[i * 3 + 0];
+        z_pos = sticks_data[i * 3 + 1];
+        radius = sticks_data[i * 3 + 2];
+        srand(time(NULL));
+        growth_fac = (float)rand() / (float)RAND_MAX *0.1;
+        
+        //mittelpunkt hochziehen
+        vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.2f;
+        //find all points that are in the radius
+        //ohne diagonale
+
+        if (radius < 1.41f) {
+            
+            //"kreuz" hochziehen
+            
+            for (int z_add = -1; z_add < 2; z_add += 2) {
+                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth;
+            }
+            for (int x_add = -1; x_add < 2; x_add+=2) {
+                vertices[((z_pos) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+            }
+        }
+        //mit diagonale
+        else if (radius < 2.0f) {
+            
+            //"kreuz" hochziehen
+
+            for (int z_add = -1; z_add < 2; z_add += 2) {
+                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth *1.1f;
+            }
+            for (int x_add = -1; x_add < 2; x_add += 2) {
+                vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth *1.1f;
+            }
+
+            //diagonale
+            for (int z_add = -1; z_add < 2; z_add += 2) {
+                for (int x_add = -1; x_add < 2; x_add += 2) {
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos +x_add) * 6 + 1] += growth_fac * time_growth * 1.f;
+                }
+            }
+            
+          
+        }
+        //ohne diagonale
+        else if (radius < 2.3f) {
+            for (int z_add = -2; z_add < 3; z_add++) {
+                if(z_add != 0)
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth;
+            }
+            for (int x_add = -2; x_add < 3; x_add++ ) {
+                if(x_add != 0)
+                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+            }
+
+            for (int z_add = -1; z_add < 2; z_add += 2) {
+                for (int x_add = -1; x_add < 2; x_add += 2) {
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                }
+            }
+        }
+        else if (radius < 2.8f) {
+            //alles von oben
+            for (int z_add = -2; z_add < 3; z_add++) {
+                if (z_add != 0)
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth;
+            }
+            for (int x_add = -2; x_add < 3; x_add++) {
+                if (x_add != 0)
+                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+            }
+
+            for (int z_add = -1; z_add < 2; z_add += 2) {
+                for (int x_add = -1; x_add < 2; x_add += 2) {
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                }
+            }
+
+            //plus "Halbdiagonale"
+            //seite
+            for (int z_add = -2; z_add < 3; z_add += 4) {
+                 vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth;
+                 vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 - 1] += growth_fac * time_growth;
+            }
+
+            for (int x_add = -2; x_add < 3; x_add += 4) {
+                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                vertices[((z_pos -1) * PLANE_DEPTH + x_pos + x_add) * 6 - 1] += growth_fac * time_growth;
+            }
+
+        }
+        // bis 3.1
+        else {
+
+            //alles von oben
+            for (int z_add = -3; z_add < 4; z_add++) {
+                if (z_add != 0)
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth;
+            }
+            for (int x_add = -3; x_add < 4; x_add++) {
+                if (x_add != 0)
+                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+            }
+
+            //diagonale
+            for (int z_add = -1; z_add < 2; z_add += 2) {
+                for (int x_add = -1; x_add < 2; x_add += 2) {
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                }
+            }
+
+            //plus "Halbdiagonale"
+            //seite
+            for (int z_add = -2; z_add < 3; z_add += 4) {
+                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth;
+                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 - 1] += growth_fac * time_growth;
+            }
+
+            for (int x_add = -2; x_add < 3; x_add += 4) {
+                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + x_add) * 6 - 1] += growth_fac * time_growth;
+            }
+
+            for (int z_add = -2; z_add < 3; z_add += 4) {
+                for (int x_add = -2; x_add < 3; x_add += 4) {
+                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] += growth_fac * time_growth;
+                }
+            }
+
+        }
+    }
+}
+
 void generateSticks(float* sticks_data) {
     int tmp_sticks = NUM_STICKS;
     float x_base = 0.f;
@@ -433,18 +574,15 @@ void generateSticks(float* sticks_data) {
     while (tmp_sticks > 0) {
         //generate base circle
 
-        if (tmp_sticks <= 0)
-            break;
-
-        //generate patch center x, z in interval [20, PLANEWIDTH -20]
+        //generate patch center x, z in interval [30, PLANEWIDTH -30]
         srand(time(NULL));
-        x_base = rand() % (PLANE_WIDTH - 40) + 20;
-        z_base = rand() % (PLANE_WIDTH - 40) + 20;
+        x_base = rand() % (PLANE_WIDTH - 60) + 30;
+        z_base = rand() % (PLANE_WIDTH - 60) + 30;
 
-        //generate radius from 2 to 7 as a float
-        radius_base = (float)(rand()) / (float)RAND_MAX * (float)(rand() % 6) + 2;
+        //generate radius from 8 to 18 as a float
+        radius_base = (float)(rand()) / (float)RAND_MAX * (float)(rand() % 11) + 8.f;
 
-        //generate sticks_cnt_tmp from 3 to 6
+        //generate sticks_cnt_tmp from 3 to 6 for sticks in base circle
         sticks_cnt_tmp = rand() % 4 + 3;
         if (tmp_sticks < sticks_cnt_tmp) {
             sticks_cnt_tmp = tmp_sticks;
@@ -457,11 +595,11 @@ void generateSticks(float* sticks_data) {
             float dist_center = fmod((float)(rand()), radius_base);
             float angle = fmod((float)rand(), 2 * M_PI);
             //xpos
-            sticks_data[running_stick_index * 3 + 0] = x_base + dist_center * cos(angle);
+            sticks_data[running_stick_index * 3 + 0] = (int)(x_base + dist_center * cos(angle));
             //zpos
-            sticks_data[running_stick_index * 3 + 1] = z_base + dist_center * sin(angle);
-            //radius from 0.9 to 1.5
-            sticks_data[running_stick_index * 3 + 2] = fmod((float)rand() / (float)RAND_MAX, 0.601f) + 0.9f;
+            sticks_data[running_stick_index * 3 + 1] = (int)(z_base + dist_center * sin(angle));
+            //radius from 1.1 to 3.1
+            sticks_data[running_stick_index * 3 + 2] = fmod((float)rand() / (float)RAND_MAX, 2.001f) + 1.1f;
 
             running_stick_index++;
         }
@@ -477,8 +615,8 @@ void generateSticks(float* sticks_data) {
             x_child = x_base + radius_base * cos(angle_center);
             z_child = z_base + radius_base * sin(angle_center);
 
-            //generate radius from 2 to 6 as a float
-            radius_child = (float)(rand()) / (float)RAND_MAX * (float)(rand() % 5) + 2;
+            //generate radius from 8 to 18 as a float
+            radius_child = (float)(rand()) / (float)RAND_MAX * (float)(rand() % 11) + 8.f;
 
             //generate sticks_cnt_tmp from 3 to 6
             sticks_cnt_tmp = rand() % 4 + 3;
@@ -493,11 +631,11 @@ void generateSticks(float* sticks_data) {
                 float dist_center = fmod((float)(rand()), radius_child);
                 float angle = fmod((float)rand(), 2 * M_PI);
                 //xpos
-                sticks_data[running_stick_index * 3 + 0] = x_child + dist_center * cos(angle);
+                sticks_data[running_stick_index * 3 + 0] =(int)( x_child + dist_center * cos(angle));
                 //zpos                                       
-                sticks_data[running_stick_index * 3 + 1] = z_child + dist_center * sin(angle);
-                //radius from 0.9 to 1.5
-                sticks_data[running_stick_index * 3 + 2] = fmod((float)rand() / (float)RAND_MAX, 0.601f) + 0.9f;
+                sticks_data[running_stick_index * 3 + 1] =(int)( z_child + dist_center * sin(angle));
+                //radius from 1.1 to 3.1
+                sticks_data[running_stick_index * 3 + 2] = fmod((float)rand() / (float)RAND_MAX, 2.001f) + 1.1f;
 
                 running_stick_index++;
             }
