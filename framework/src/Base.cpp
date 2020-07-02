@@ -101,7 +101,7 @@ main(int, char* argv[]) {
     model_floor= glm::translate(model_floor, pos_floor);
 
     //Plane position ceil
-    glm::vec3 pos_ceil = glm::vec3(0.0, 85.0, 0.0);
+    glm::vec3 pos_ceil = glm::vec3(0.0, 100.0, 0.0);
     glm::mat4 model_ceil = glm::mat4(1);
     model_ceil = glm::translate(model_ceil, pos_ceil);
 

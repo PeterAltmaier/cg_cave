@@ -253,7 +253,7 @@ camera::camera(GLFWwindow* window) {
 
     state->period_mouse = 0.f;
 
-    state->look_at = glm::vec3(0.f);
+    state->look_at = glm::vec3(200.f,20.f,200.f);
     state->phi = M_PI;
     state->theta = 0.f;
     state->radius = 5.f;
