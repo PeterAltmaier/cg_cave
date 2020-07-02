@@ -112,12 +112,12 @@ main(int, char* argv[]) {
     generateVertices(vertices_floor, generator_floor);
     generateVertices(vertices_floor_tmp, generator_floor);
     calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
-                     generator_floor);
+                     generator_floor,1);
 
     //generate vertices ceiling
     generateVertices(vertices_ceil, generator_ceil);
     generateVertices(vertices_ceil_tmp, generator_ceil);
-    calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_ceil);
+    calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2, generator_ceil,-1);
 
     generateIndices(indices, total_indices);
 
@@ -243,7 +243,7 @@ main(int, char* argv[]) {
             glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
             growth_plane(vertices_floor, vertices_floor_tmp, growth_factor_start, 500.f);
             calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
-                             generator_floor);
+                             generator_floor,1);
             
             glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
             glBufferSubData(GL_ARRAY_BUFFER, 0 ,6 * num_vertices * sizeof(float),vertices_floor);
@@ -251,25 +251,25 @@ main(int, char* argv[]) {
             glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
             growth_plane(vertices_ceil, vertices_ceil_tmp, growth_factor_start, 500.f);
             calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
-                             generator_ceil);
+                             generator_ceil,-1);
             
             glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
             growth_factor_start++;
         }
-        else if(growth_time_sticks < 30){
+        else if(growth_time_sticks < 40){
             //ceiling
             glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
             growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
             calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
-                generator_ceil);
+                generator_ceil,-1);
             glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
 
             //floor
             glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
             calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
-                generator_floor);
+                generator_floor,1);
 
             glBufferSubData(GL_ARRAY_BUFFER, 0, 0, NULL);
             glBufferSubData(GL_ARRAY_BUFFER, 0, 6 * num_vertices * sizeof(float), vertices_floor);
@@ -330,7 +330,7 @@ void generateVertices(float *vertices, HeightGenerator generator){
     }
 }
 
-void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator)
+void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigned int f_size, HeightGenerator generator,int invert)
 {
     /*
     for (unsigned j = 0; j < PLANE_DEPTH; j++) {
@@ -410,6 +410,7 @@ void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigne
 
             normal /= total_space;
             normal = glm::normalize(normal);
+            normal *= invert;
             vertices[(z * PLANE_WIDTH + x) * 6 + 3] = normal.x;
             vertices[(z * PLANE_WIDTH + x) * 6 + 4] = normal.y;
             vertices[(z * PLANE_WIDTH + x) * 6 + 5] = normal.z;
