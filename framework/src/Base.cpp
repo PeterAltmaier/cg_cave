@@ -22,6 +22,7 @@ const float FAR_VALUE = 1000.f;
 const unsigned int PLANE_WIDTH = 400;
 const unsigned int PLANE_DEPTH = 400;
 const unsigned int NUM_STICKS = 600;
+const unsigned int PLANE_DIFF = 100;
 
 glm::mat4 proj_matrix;
 
@@ -53,7 +54,7 @@ void generateSticks(float* sticks_data);
 
 void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, float growth_range);
 
-void growSticks(float* vertices, float* sticks_data, int growth_iter);
+void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int growth_iter);
 
 bool stick_col_set(int** col_mat, int x, int z, float radius);
 
@@ -101,7 +102,7 @@ main(int, char* argv[]) {
     model_floor= glm::translate(model_floor, pos_floor);
 
     //Plane position ceil
-    glm::vec3 pos_ceil = glm::vec3(0.0, 100.0, 0.0);
+    glm::vec3 pos_ceil = glm::vec3(0.0, (float)PLANE_DIFF, 0.0);
     glm::mat4 model_ceil = glm::mat4(1);
     model_ceil = glm::translate(model_ceil, pos_ceil);
 
@@ -260,12 +261,22 @@ main(int, char* argv[]) {
             growth_factor_start++;
         }
         else if(growth_time_sticks < 30){
+            //ceiling
             glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
-            growSticks(vertices_ceil, sticks_data, growth_time_sticks);
+            growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
             calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                 generator_ceil);
             glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
+
+            //floor
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
+            calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
+                generator_floor);
+
+            glBufferSubData(GL_ARRAY_BUFFER, 0, 0, NULL);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, 6 * num_vertices * sizeof(float), vertices_floor);
+
             growth_time_sticks++;
         }
         glBindVertexArray(VAO[0]);
@@ -432,7 +443,7 @@ generateIndices(unsigned int* indices, unsigned int ind_size) {
     }
 }
 
-void growSticks(float* vertices, float* sticks_data, int time_growth) {
+void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int time_growth) {
     float radius, growth_fac;
     int  x_pos, z_pos;
     std::random_device dev;
@@ -595,8 +606,35 @@ void growSticks(float* vertices, float* sticks_data, int time_growth) {
 
             vertices[(z_pos * PLANE_DEPTH + x_pos + 3) * 6 + 1] -= growth_fac * time_growth * 0.8f;
             vertices[(z_pos * PLANE_DEPTH + x_pos - 3) * 6 + 1] -= growth_fac * time_growth * 0.8f;
+            //todo time_growth in main anpassen bspw. 200 frames lang werte zwischen 0 und 1 nutzen
 
+        }
 
+        //von unten stalagmiten wachsen lassen
+        float height_diff = vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] - vertices_floor[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1]+ PLANE_DIFF;
+        //radius abhängig von höhendifferenz, growth ebenfall
+        float stalag_m_radius = height_diff * growth_fac /2  + radius;
+        float stalag_m_growth = growth_fac / stalag_m_radius *3;
+
+        //test if point is in radius
+        int approx_radius = (int)ceil(stalag_m_radius);
+        float distance_tmp;
+        for (int u = z_pos - approx_radius; u < z_pos + approx_radius + 1; u++) {
+            for (int v = x_pos - approx_radius; v < x_pos + approx_radius + 1; v++) {
+                distance_tmp = glm::distance(glm::vec2(v, u), glm::vec2(x_pos, z_pos));
+                if (distance_tmp <= stalag_m_radius) {
+
+                    if (distance_tmp <= 3.f / 5.f * stalag_m_growth) {
+                        vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * time_growth;
+                    }
+                    else if (distance_tmp <= 4.f / 5.f * stalag_m_growth) {
+                        vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * time_growth*0.9f;
+                    }
+                    else {
+                        vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * time_growth * 0.85f;
+                    }
+                }
+            }
         }
     }
 }
