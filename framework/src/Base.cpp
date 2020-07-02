@@ -170,7 +170,7 @@ main(int, char* argv[]) {
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
     int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
     int tex_loc = glGetUniformLocation(shaderProgram, "tex");
-    glm::vec3 light_dir = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
+    glm::vec3 light_dir = glm::normalize(glm::vec3((float)PLANE_WIDTH/2.f, 50, (float)PLANE_DEPTH/2.f));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
 
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
@@ -209,7 +209,7 @@ main(int, char* argv[]) {
     // rendering loop
     while (glfwWindowShouldClose(window) == false) {
         // set background color...
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.f, 0.f, 0.f, 1.0f);
         // and fill screen with it (therefore clearing the window)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

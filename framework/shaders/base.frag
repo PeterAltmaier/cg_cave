@@ -1,6 +1,7 @@
 #version 330 core
 
 in vec3 interp_normal;
+in vec3 pos;
 
 uniform vec3 light_dir;
 uniform sampler2D tex;
@@ -13,10 +14,12 @@ vec2 getUVCoordinates(vec3 p);
 
 void main()
 {
-	float light = dot(interp_normal, light_dir);
-	vec2 tc = getUVCoordinates(normalize(interp_normal));
+	vec3 light_dir_point = normalize(light_dir-normalize(pos));
+	float dist = 1.f/float(length(vec3(200.f,50.f,200.f)-pos));
+	float light = dot(interp_normal,light_dir_point);
+	vec2 tc = getUVCoordinates(normalize(pos));
 	FragColor = texture2D(tex,tc);
-	FragColor = clamp(light, 0.1, 1.0) * FragColor;
+	FragColor = clamp(light*dist*10.f, dist, 1.f) * FragColor;
 }
 
 vec2 getUVCoordinates(vec3 p){
