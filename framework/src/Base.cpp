@@ -452,121 +452,146 @@ void growSticks(float* vertices, float* sticks_data, int time_growth) {
         //ohne diagonale
 
         if (radius < 1.41f) {
-            
+
             //"kreuz" hochziehen
-            
-            for (int z_add = -1; z_add < 2; z_add += 2) {
-                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth*1.1f;
-            }
-            for (int x_add = -1; x_add < 2; x_add+=2) {
-                vertices[((z_pos) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth*1.1f;
-            }
+
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.1f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.1f;
+
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.1f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.1f;
+
         }
         //mit diagonale
         else if (radius < 2.0f) {
             
             //"kreuz" hochziehen
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth*1.1f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth*1.1f;
 
-            for (int z_add = -1; z_add < 2; z_add += 2) {
-                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth *1.1f;
-            }
-            for (int x_add = -1; x_add < 2; x_add += 2) {
-                vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth *1.1f;
-            }
+
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth*1.1f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth*1.1f;
 
             //diagonale
-            for (int z_add = -1; z_add < 2; z_add += 2) {
-                for (int x_add = -1; x_add < 2; x_add += 2) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos +x_add) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                }
-            }
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+
             
           
         }
         //ohne diagonale
         else if (radius < 2.3f) {
-            for (int z_add = -2; z_add < 3; z_add++) {
-                if(z_add != 0)
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth;
-            }
-            for (int x_add = -2; x_add < 3; x_add++ ) {
-                if(x_add != 0)
-                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth;
-            }
 
-            for (int z_add = -1; z_add < 2; z_add += 2) {
-                for (int x_add = -1; x_add < 2; x_add += 2) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth*1.0f;
-                }
-            }
+            //"kreuz" hochziehen
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.1f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.1f;
+
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.1f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.1f;
+
+            //diagonale
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+
+            //zweites "Kreuz"
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 0.9f;
+
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+
         }
         else if (radius < 2.8f) {
             //alles von oben
-            for (int z_add = -2; z_add < 3; z_add++) {
-                if (z_add != 0)
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth;
-            }
-            for (int x_add = -2; x_add < 3; x_add++) {
-                if (x_add != 0)
-                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth;
-            }
+            //"kreuz" hochziehen
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.1f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.1f;
 
-            for (int z_add = -1; z_add < 2; z_add += 2) {
-                for (int x_add = -1; x_add < 2; x_add += 2) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth*1.0f;
-                }
-            }
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.1f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.1f;
+
+            //diagonale
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+
+            //zweites "Kreuz"
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 0.9f;
+
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
 
             //plus "Halbdiagonale"
             //seite
-            for (int z_add = -2; z_add < 3; z_add += 4) {
-                 vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth*0.9f;
-                 vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 - 1] -= growth_fac * time_growth*0.9f;
-            }
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 0.9f;
 
-            for (int x_add = -2; x_add < 3; x_add += 4) {
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth*0.9f;
-                vertices[((z_pos -1) * PLANE_DEPTH + x_pos + x_add) * 6 - 1] -= growth_fac * time_growth*0.9f;
-            }
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+
 
         }
         // bis 3.1
         else {
 
             //alles von oben
-            for (int z_add = -3; z_add < 4; z_add++) {
-                if (z_add != 0)
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth;
-            }
-            for (int x_add = -3; x_add < 4; x_add++) {
-                if (x_add != 0)
-                    vertices[((z_pos)*PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth;
-            }
+
+            //"kreuz" hochziehen
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.1f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 1.1f;
+
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.1f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.1f;
 
             //diagonale
-            for (int z_add = -1; z_add < 2; z_add += 2) {
-                for (int x_add = -1; x_add < 2; x_add += 2) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth*1.0f;
-                }
-            }
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 1.f;
+
+            //zweites "Kreuz"
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 0.9f;
+
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
 
             //plus "Halbdiagonale"
             //seite
-            for (int z_add = -2; z_add < 3; z_add += 4) {
-                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth*0.9f;
-                vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + 1) * 6 - 1] -= growth_fac * time_growth*0.9f;
-            }
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos + 1) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos - 1) * 6 + 1] += growth_fac * time_growth * 0.9f;
 
-            for (int x_add = -2; x_add < 3; x_add += 4) {
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth*0.9f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + x_add) * 6 - 1] -= growth_fac * time_growth*0.9f;
-            }
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
 
-            for (int z_add = -2; z_add < 3; z_add += 4) {
-                for (int x_add = -2; x_add < 3; x_add += 4) {
-                    vertices[((z_pos + z_add) * PLANE_DEPTH + x_pos + x_add) * 6 + 1] -= growth_fac * time_growth*0.9f;
-                }
-            }
+            //zweite diagonale
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos + 2) * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos + 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+            vertices[((z_pos - 2) * PLANE_DEPTH + x_pos - 2) * 6 + 1] += growth_fac * time_growth * 0.9f;
+
+            //drittes "Kreuz"
+            vertices[((z_pos + 3) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 0.8f;
+            vertices[((z_pos - 3) * PLANE_DEPTH + x_pos) * 6 + 1] += growth_fac * time_growth * 0.8f;
+
+            vertices[(z_pos * PLANE_DEPTH + x_pos + 3) * 6 + 1] += growth_fac * time_growth * 0.8f;
+            vertices[(z_pos * PLANE_DEPTH + x_pos - 3) * 6 + 1] += growth_fac * time_growth * 0.8f;
+
 
         }
     }
