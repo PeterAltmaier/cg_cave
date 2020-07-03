@@ -60,7 +60,7 @@ float compAdd(glm::mat3 matrix);
 
 glm::vec2 drop_derivation(float* vertices, float x, float z);
 
-void generateDrops(int drop_cnt, float* vertices_ceil, float* vertices_floor);
+void generateDrops(float* vertices_ceil, float* vertices_floor);
 
 int
 main(int, char* argv[]) {
@@ -228,7 +228,7 @@ main(int, char* argv[]) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float current_Frame = glfwGetTime();
-        delta_time =current_Frame -last_frame;
+        delta_time = current_Frame -last_frame;
         while (delta_time < 0.016666f) {
             Sleep(5);
             current_Frame = glfwGetTime();
@@ -275,9 +275,12 @@ main(int, char* argv[]) {
             growth_factor_start++;
         }
         else if(growth_time_sticks < 30){
+            //Wachstum der Ebenen
+            growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
+            generateDrops(vertices_ceil, vertices_floor);
+
             //ceiling
             glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
-            growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
             calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                 generator_ceil,-1);
             glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
@@ -465,6 +468,7 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
     std::random_device dev;
     std::mt19937 e2(dev());
     std::uniform_real_distribution<> dist_growth(0.001f, 0.2f);
+    //todo time_growth entfernen oder nicht linear steigen lassen
 
     //iterate over sticks
     for (int i = 0; i < NUM_STICKS; i++) {
@@ -475,10 +479,12 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
         int radius_ceiled = (int)ceil(radius);
         srand(time(NULL));
         growth_fac = sticks_data[i * 4 + 3];
+        //Wachstum nur, wenn Ebenen sich nicht berühren
         float distance_test = vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] - vertices_floor[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] + PLANE_DIFF;
+
         if(distance_test > 0) {
 
-
+            //Stalagtiten wachsen lassen
             for (int u = z_pos - radius_ceiled; u < z_pos + radius_ceiled + 1; u++) {
                 for (int v = x_pos - radius_ceiled; v < x_pos + radius_ceiled + 1; v++) {
                     float distance_tmp = glm::distance(glm::vec2(v, u), glm::vec2(x_pos, z_pos));
@@ -867,28 +873,103 @@ bool stick_col_set(int** col_mat, int x, int z, float radius) {
     return true;
 }
 
-void generateDrops(int drop_cnt, float* vertices_ceil, float* vertices_floor){
+void generateDrops(float* vertices_ceil, float* vertices_floor){
 
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> drop_pos_gen(20, PLANE_WIDTH - 20); // distribution in range [1, 6]
+    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 4 * 0.6f, NUM_STICKS * 4);
 
     std::mt19937 e2(dev());
-    std::normal_distribution<> drop_mass_gen(6.f,1.f);
+    std::uniform_real_distribution<> drop_mass_gen(0.f, 1.f);
 
-    float drop_x,drop_z;
+    int drop_x,drop_z;
     float drop_radius = 1.5f;
     float drop_mass;
+    glm::vec2 drop_deri;
+    float growth_fac;
+    float sediment_fac;
+    bool drop_down;
+    int drop_cnt = drop_cnt_gen(rng);
+
     for(int i= 0;i<drop_cnt;i++){
-        drop_x = (float)drop_pos_gen(rng);
-        drop_z = (float)drop_pos_gen(rng);
+        drop_x = drop_pos_gen(rng);
+        drop_z = drop_pos_gen(rng);
+
         drop_mass = abs(drop_mass_gen(e2));
+        drop_deri = drop_derivation(vertices_ceil, drop_x, drop_z);
+        growth_fac = glm::length(drop_deri);
+
+        drop_down = true;
+
+        while(drop_deri.x != 0 && drop_deri.y != 0){
+            //Tropfen hat Rand erreicht und wird verworfen
+            if(drop_x < 20 || drop_x > PLANE_WIDTH-20 || drop_z < 20 || drop_z > PLANE_DEPTH-20){
+                drop_down = false;
+                break;
+            }
+            if(drop_mass <= 0){
+                drop_down = false;
+                break;
+            }
+
+            sediment_fac = 1.f/(growth_fac+1.f) * drop_mass /50.f ;
+
+            //Mitte
+            vertices_ceil[(drop_z * PLANE_DEPTH +drop_x) * 6 + 1] -= sediment_fac;
+            //"Kreuz"
+            vertices_ceil[((drop_z + 1) * PLANE_DEPTH + drop_x) * 6 + 1] -= sediment_fac * 0.95f;
+            vertices_ceil[((drop_z - 1) * PLANE_DEPTH + drop_x) * 6 + 1] -= sediment_fac * 0.95f;
+            vertices_ceil[(drop_z * PLANE_DEPTH + drop_x + 1) * 6 + 1] -= sediment_fac * 0.95f;
+            vertices_ceil[(drop_z * PLANE_DEPTH + drop_x - 1) * 6 + 1] -= sediment_fac * 0.95f;
+            //Diagonale
+            vertices_ceil[((drop_z + 1) * PLANE_DEPTH + drop_x + 1) * 6 + 1] -= sediment_fac * 0.9f;
+            vertices_ceil[((drop_z + 1) * PLANE_DEPTH + drop_x - 1) * 6 + 1] -= sediment_fac * 0.9f;
+            vertices_ceil[((drop_z - 1)* PLANE_DEPTH + drop_x + 1) * 6 + 1] -= sediment_fac * 0.9f;
+            vertices_ceil[((drop_z - 1)* PLANE_DEPTH + drop_x - 1) * 6 + 1] -= sediment_fac * 0.9f;
+
+            drop_deri = glm::normalize(drop_deri);
+            drop_x = ceil(drop_x + drop_deri.x);
+            drop_z = ceil(drop_z + drop_deri.y);
+
+            drop_mass -= sediment_fac;
+            drop_deri = drop_derivation(vertices_ceil, drop_x, drop_z);
+        }
+
+        if(drop_down){
+            float height_diff = vertices_ceil[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1] -
+                                vertices_floor[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1] + PLANE_DIFF;
+            //radius abhängig von höhendifferenz, growth ebenfall
+            float stalag_m_drop_radius = height_diff * sediment_fac / 2 + drop_radius;
+            float stalag_m_drop_growth = sediment_fac / stalag_m_drop_radius * 2.5f;
+
+            //test if point is in radius
+            int approx_radius = (int) ceil(stalag_m_drop_radius);
+            float distance_tmp;
+            for (int u = drop_z - approx_radius; u < drop_z + approx_radius + 1; u++) {
+                for (int v = drop_x - approx_radius; v < drop_x + approx_radius + 1; v++) {
+                    distance_tmp = glm::distance(glm::vec2(v, u), glm::vec2(drop_x, drop_z));
+                    if (distance_tmp <= stalag_m_drop_radius) {
+
+                        if (distance_tmp <= 3.f / 5.f * stalag_m_drop_radius) {
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.9;
+                        } else if (distance_tmp <= 4.f / 5.f * stalag_m_drop_radius) {
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.85f;
+                        } else {
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.8f;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 glm::vec2 drop_derivation(float* vertices, float x, float z){
     int cent_x = (int)x;
     int cent_z = (int)z;
+
+
     float drop_y = vertices[(cent_z * PLANE_DEPTH + cent_x) * 6 +1];
     bool extrema = true;
     glm::mat3 sur_mat = glm::mat3(0.f);
@@ -941,8 +1022,7 @@ void processInput(GLFWwindow *window,float delta_time,float* momentum,float *per
     if(glfwGetKey(window,GLFW_KEY_TAB) == GLFW_PRESS){
         if(cam_movement){
             cam_movement = false;
-        }
-        else{
+        }else{
             cam_movement = true;
         }
     }
