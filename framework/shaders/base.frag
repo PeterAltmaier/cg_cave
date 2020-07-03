@@ -5,6 +5,7 @@ in vec3 pos;
 
 uniform vec3 light_dir;
 uniform sampler2D tex;
+uniform float rand_light;
 
 out vec4 FragColor;
 
@@ -14,12 +15,16 @@ vec2 getUVCoordinates(vec3 p);
 
 void main()
 {
+	vec2 tex_pos = vec2(pos.x,pos.z);
+
 	vec3 light_dir_point = normalize(light_dir-normalize(pos));
 	float dist = 1.f/float(length(vec3(200.f,50.f,200.f)-pos));
-	float light = dot(interp_normal,light_dir_point);
+	float light = dot(interp_normal,light_dir_point);//*dist*100*rand_light;
+	vec3 light_colored = vec3(1.f,0.6f,0.2f)*light;
 	vec2 tc = getUVCoordinates(normalize(pos));
 	FragColor = texture2D(tex,tc);
-	FragColor = clamp(light*dist*10.f, dist, 1.f) * FragColor;
+	FragColor = clamp(light, 0.1f, 1.f) * FragColor;
+	//FragColor = vec4(light_colored,1.f)*FragColor;
 }
 
 vec2 getUVCoordinates(vec3 p){
@@ -28,8 +33,8 @@ vec2 getUVCoordinates(vec3 p){
 	float theta = atan(p.x,p.y)+pi;
 	uv.x = theta/(2*pi);
 	uv.y = (p.z+1)/2;
-	//uv = uv/sqrt(pow(uv.x,2)+pow(uv.y,2));
-	normalize(uv);
+
+	//normalize(uv);
 
 	return uv;
 }

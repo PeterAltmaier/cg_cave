@@ -23,6 +23,7 @@ const unsigned int PLANE_WIDTH = 400;
 const unsigned int PLANE_DEPTH = 400;
 const unsigned int NUM_STICKS = 600;
 const unsigned int PLANE_DIFF = 100;
+bool cam_movement = false;
 
 glm::mat4 proj_matrix;
 
@@ -54,6 +55,12 @@ void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, flo
 void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int growth_iter);
 
 bool stick_col_set(int** col_mat, int x, int z, float radius);
+
+float compAdd(glm::mat3 matrix);
+
+glm::vec2 drop_derivation(float* vertices, float x, float z);
+
+void generateDrops(int drop_cnt, float* vertices_ceil, float* vertices_floor);
 
 int
 main(int, char* argv[]) {
@@ -141,7 +148,7 @@ main(int, char* argv[]) {
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
     int width, height, nrChannels;
-    unsigned char* data_load = stbi_load("../data/kalk2.jpg",&width,&height,&nrChannels,0);
+    unsigned char* data_load = stbi_load("../data/sandstein.jpg",&width,&height,&nrChannels,0);
     if(data_load){
 
         glTexImage2D(GL_TEXTURE_2D,0,GL_RGB32F,width, height,0,GL_RGB,GL_UNSIGNED_BYTE,data_load);
@@ -170,7 +177,8 @@ main(int, char* argv[]) {
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
     int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
     int tex_loc = glGetUniformLocation(shaderProgram, "tex");
-    glm::vec3 light_dir = glm::normalize(glm::vec3((float)PLANE_WIDTH/2.f, 50, (float)PLANE_DEPTH/2.f));
+    int rand_light_loc = glGetUniformLocation(shaderProgram, "rand_light");
+    glm::vec3 light_dir = glm::normalize(glm::vec3((float)PLANE_WIDTH/2.f, 20, (float)PLANE_DEPTH/2.f));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
 
     proj_matrix = glm::perspective(FOV, 1.f, NEAR_VALUE, FAR_VALUE);
@@ -206,6 +214,12 @@ main(int, char* argv[]) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,IBO_ceil);
     float growth_factor_start = 0.0f;
     float growth_time_sticks = 0.0f;
+
+    //todo Entfernen
+    std::random_device dev;
+    std::mt19937 e2(dev());
+    std::normal_distribution<> dist_light(0.9f, 0.1f);
+    int lauf = 0;
     // rendering loop
     while (glfwWindowShouldClose(window) == false) {
         // set background color...
@@ -237,6 +251,9 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
+        if(lauf % 8 == 0) {
+            glUniform1f(rand_light_loc, dist_light(e2));
+        }
 
         //Growth
         if(growth_factor_start<=-1) { //todo anpassen
@@ -257,7 +274,7 @@ main(int, char* argv[]) {
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
             growth_factor_start++;
         }
-        else if(growth_time_sticks < 40){
+        else if(growth_time_sticks < 30){
             //ceiling
             glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
             growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
@@ -293,6 +310,8 @@ main(int, char* argv[]) {
         // process window events
 
         glfwPollEvents();
+
+        lauf++;
     }
 
 
@@ -418,8 +437,7 @@ void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigne
     }
 }
 
-void
-generateIndices(unsigned int* indices, unsigned int ind_size) {
+void generateIndices(unsigned int* indices, unsigned int ind_size) {
 
     //triangle strips
     unsigned i = 0;
@@ -460,155 +478,6 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
         float distance_test = vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] - vertices_floor[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] + PLANE_DIFF;
         if(distance_test > 0) {
 
-            //mittelpunkt hochziehen
-            //vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.12f;
-            //find all points that are in the radius
-            //ohne diagonale
-            /*
-            if (radius < 1.41f) {
-
-                //"kreuz" hochziehen
-
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-
-            }
-            //mit diagonale
-            else if (radius < 2.0f) {
-
-                //"kreuz" hochziehen
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth*1.1f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth*1.1f;
-
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth*1.1f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth*1.1f;
-
-                //diagonale
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-
-
-
-            }
-            //ohne diagonale
-            else if (radius < 2.3f) {
-
-                //"kreuz" hochziehen
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-
-                //diagonale
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-
-                //zweites "Kreuz"
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-            }
-            else if (radius < 2.8f) {
-                //alles von oben
-                //"kreuz" hochziehen
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-
-                //diagonale
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-
-                //zweites "Kreuz"
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                //plus "Halbdiagonale"
-                //seite
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-
-            }
-            // bis 3.1
-            else {
-
-                //alles von oben
-
-                //"kreuz" hochziehen
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.1f;
-
-                //diagonale
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 1.f;
-
-                //zweites "Kreuz"
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                //plus "Halbdiagonale"
-                //seite
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos + 1) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos - 1) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos + 1) * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 1) * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                //zweite diagonale
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos + 2) * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos + 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-                vertices[((z_pos - 2) * PLANE_DEPTH + x_pos - 2) * 6 + 1] -= growth_fac * time_growth * 0.9f;
-
-                //drittes "Kreuz"
-                vertices[((z_pos + 3) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 0.8f;
-                vertices[((z_pos - 3) * PLANE_DEPTH + x_pos) * 6 + 1] -= growth_fac * time_growth * 0.8f;
-
-                vertices[(z_pos * PLANE_DEPTH + x_pos + 3) * 6 + 1] -= growth_fac * time_growth * 0.8f;
-                vertices[(z_pos * PLANE_DEPTH + x_pos - 3) * 6 + 1] -= growth_fac * time_growth * 0.8f;
-                //todo time_growth in main anpassen bspw. 200 frames lang werte zwischen 0 und 1 nutzen
-
-            }
-            */
 
             for (int u = z_pos - radius_ceiled; u < z_pos + radius_ceiled + 1; u++) {
                 for (int v = x_pos - radius_ceiled; v < x_pos + radius_ceiled + 1; v++) {
@@ -662,8 +531,13 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
 
 void generateSticks(float* sticks_data) {
     int** stick_col_mat = new int* [PLANE_DEPTH];
-    for (int i = 0; i < PLANE_DEPTH; ++i)
+    for (int i = 0; i < PLANE_DEPTH; ++i) {
         stick_col_mat[i] = new int[PLANE_WIDTH];
+        for(int j = 0; j < PLANE_WIDTH; j++){
+            stick_col_mat[i][j] = 0;
+        }
+    }
+
 
 
     int num_sticks = NUM_STICKS;
@@ -676,7 +550,7 @@ void generateSticks(float* sticks_data) {
     float radius_child = 0.f;
 
     int sticks_cnt_tmp = 0;
-    float dist_center;
+    //float dist_center;
     int running_stick_index = 0;
 
     srand(time(NULL));
@@ -993,18 +867,91 @@ bool stick_col_set(int** col_mat, int x, int z, float radius) {
     return true;
 }
 
+void generateDrops(int drop_cnt, float* vertices_ceil, float* vertices_floor){
+
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> drop_pos_gen(20, PLANE_WIDTH - 20); // distribution in range [1, 6]
+
+    std::mt19937 e2(dev());
+    std::normal_distribution<> drop_mass_gen(6.f,1.f);
+
+    float drop_x,drop_z;
+    float drop_radius = 1.5f;
+    float drop_mass;
+    for(int i= 0;i<drop_cnt;i++){
+        drop_x = (float)drop_pos_gen(rng);
+        drop_z = (float)drop_pos_gen(rng);
+        drop_mass = abs(drop_mass_gen(e2));
+    }
+}
+
+glm::vec2 drop_derivation(float* vertices, float x, float z){
+    int cent_x = (int)x;
+    int cent_z = (int)z;
+    float drop_y = vertices[(cent_z * PLANE_DEPTH + cent_x) * 6 +1];
+    bool extrema = true;
+    glm::mat3 sur_mat = glm::mat3(0.f);
+    glm::mat3 sobel_hor = glm::mat3(0.f);
+    glm::mat3 sobel_vert = glm::mat3(0.f);
+    sobel_hor[0] = glm::vec3(1,2,1);
+    sobel_hor[2] = glm::vec3(-1,-2,-1);
+    sobel_vert[0] = glm:: vec3(-1,0,1);
+    sobel_vert[1] = glm::vec3(-2,0,2);
+    sobel_vert[2] = glm::vec3(-1,0,1);
+
+    //test auf Punkt ist Tiefpunkt und Höhenwerte in Mat speichern
+    for(int i = -1; i < 2; i++){
+        for(int j = -1;j < 2; j++){
+            sur_mat[i+1][j+1] = vertices[((cent_z + j) * PLANE_DEPTH + (cent_x + i)) * 6 +1];
+            if(drop_y > sur_mat[i+1][j+1]){
+                extrema = false;
+            }
+        }
+    }
+    if(extrema){
+        return glm::vec2(0.0f,0.0f);
+    }
+    //sobel-filter
+    float x_dir = compAdd(glm::matrixCompMult(sobel_hor, sur_mat));
+    float z_dir = compAdd(glm::matrixCompMult(sobel_vert, sur_mat));
+
+    return glm::vec2(x_dir, z_dir);
+
+}
+
+float compAdd(glm::mat3 matrix){
+    float sum = 0;
+    for(int i = 0;i<3;i++) {
+        for (int j = 0; j < 3; j++) {
+            sum += matrix[i][j];
+        }
+    }
+    return sum;
+}
+
 void processInput(GLFWwindow *window,float delta_time,float* momentum,float *period){
     int key[] ={GLFW_KEY_W,GLFW_KEY_S,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_SPACE,GLFW_KEY_LEFT_SHIFT}; //alle zu testenden keys
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    if(glfwGetKey(window,GLFW_KEY_LEFT_CONTROL)==GLFW_PRESS){ //shift beschleunigt
+    if(glfwGetKey(window,GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS){ //shift beschleunigt
         delta_time *= 2.0f;
     }
+    if(glfwGetKey(window,GLFW_KEY_TAB) == GLFW_PRESS){
+        if(cam_movement){
+            cam_movement = false;
+        }
+        else{
+            cam_movement = true;
+        }
+    }
 
-    for(int i=0;i<6;i++){
-        if(period[i]>0){
-            camera::keycallback(window,key[i],delta_time*momentum[i]);
+    if(cam_movement) {
+        for (int i = 0; i < 6; i++) {
+            if (period[i] > 0) {
+                camera::keycallback(window, key[i], delta_time * momentum[i]);
+            }
         }
     }
 }
