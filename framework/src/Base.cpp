@@ -22,7 +22,7 @@ const float FAR_VALUE = 1000.f;
 const unsigned int PLANE_WIDTH = 400;
 const unsigned int PLANE_DEPTH = 400;
 const unsigned int NUM_STICKS = 600;
-const unsigned int PLANE_DIFF = 100;
+const unsigned int PLANE_DIFF = 115;
 bool cam_movement = false;
 
 glm::mat4 proj_matrix;
@@ -48,7 +48,7 @@ void key_pressed(GLFWwindow *window,unsigned int *pressed);
 
 void generateVertices(float *vertices, HeightGenerator generator);
 
-void generateSticks(float* sticks_data);
+void generateSticks(float* sticks_data,int** stick_col_mat);
 
 void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, float growth_range);
 
@@ -91,6 +91,22 @@ main(int, char* argv[]) {
     //sticks data
     float* sticks_data = new float[NUM_STICKS*4];
 
+    int** stick_col_mat = new int* [PLANE_DEPTH];
+    for (int i = 0; i < PLANE_DEPTH; ++i) {
+        stick_col_mat[i] = new int[PLANE_WIDTH];
+        for(int j = 0; j < PLANE_WIDTH; j++){
+            stick_col_mat[i][j] = 0;
+        }
+    }
+    int radius_center = 15;
+    for(int i = PLANE_WIDTH/2 - radius_center; i < PLANE_WIDTH/2 + radius_center + 1; i++){
+        for(int j = PLANE_DEPTH/2 - radius_center; j < PLANE_DEPTH/2 + radius_center + 1; j++){
+            if(glm::distance(glm::vec2(PLANE_WIDTH/2,PLANE_DEPTH/2), glm::vec2(i,j)) < radius_center) {
+                stick_col_mat[i][j] = 1;
+            }
+        }
+    }
+
 
     //camera variables
     float delta_time = 0.0f;
@@ -129,13 +145,13 @@ main(int, char* argv[]) {
     generateIndices(indices, total_indices);
 
     //generate stick data
-    generateSticks(sticks_data);
+    generateSticks(sticks_data, stick_col_mat);
     
 
 
     GLFWwindow* window = initOpenGL(WINDOW_WIDTH, WINDOW_HEIGHT, argv[0]);
     glfwSetFramebufferSizeCallback(window, resizeCallback);
-    camera cam(window);
+    camera cam(window, PLANE_WIDTH, PLANE_DEPTH);
 
 
     unsigned int texture;
@@ -276,7 +292,9 @@ main(int, char* argv[]) {
         }
         else if(growth_time_sticks < 30){
             //Wachstum der Ebenen
-            growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
+            if(growth_time_sticks < 30)
+                growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
+
             generateDrops(vertices_ceil, vertices_floor);
 
             //ceiling
@@ -289,7 +307,7 @@ main(int, char* argv[]) {
             //floor
             glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
             calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
-                generator_floor,1);
+               generator_floor,1);
 
             glBufferSubData(GL_ARRAY_BUFFER, 0, 0, NULL);
             glBufferSubData(GL_ARRAY_BUFFER, 0, 6 * num_vertices * sizeof(float), vertices_floor);
@@ -535,16 +553,7 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
     }
 }
 
-void generateSticks(float* sticks_data) {
-    int** stick_col_mat = new int* [PLANE_DEPTH];
-    for (int i = 0; i < PLANE_DEPTH; ++i) {
-        stick_col_mat[i] = new int[PLANE_WIDTH];
-        for(int j = 0; j < PLANE_WIDTH; j++){
-            stick_col_mat[i][j] = 0;
-        }
-    }
-
-
+void generateSticks(float* sticks_data, int** stick_col_mat) {
 
     int num_sticks = NUM_STICKS;
     float x_base = 0.f;
@@ -881,16 +890,17 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
     std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 4 * 0.6f, NUM_STICKS * 4);
 
     std::mt19937 e2(dev());
-    std::uniform_real_distribution<> drop_mass_gen(0.f, 1.f);
+    std::uniform_real_distribution<> drop_mass_gen(0.03f, 0.3f);
 
     int drop_x,drop_z;
     float drop_radius = 1.5f;
     float drop_mass;
     glm::vec2 drop_deri;
     float growth_fac;
-    float sediment_fac;
+    float sediment_fac = 0.1f;
     bool drop_down;
     int drop_cnt = drop_cnt_gen(rng);
+    //int drop_cnt = 100;
 
     for(int i= 0;i<drop_cnt;i++){
         drop_x = drop_pos_gen(rng);
@@ -908,13 +918,14 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
                 drop_down = false;
                 break;
             }
-            if(drop_mass <= 0){
+            if(drop_mass <= 0.0001){
                 drop_down = false;
                 break;
             }
 
-            sediment_fac = 1.f/(growth_fac+1.f) * drop_mass /50.f ;
+            sediment_fac = 1.f/(growth_fac+1.f) * drop_mass;
 
+            //Wachstum der Decke
             //Mitte
             vertices_ceil[(drop_z * PLANE_DEPTH +drop_x) * 6 + 1] -= sediment_fac;
             //"Kreuz"
@@ -929,18 +940,28 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
             vertices_ceil[((drop_z - 1)* PLANE_DEPTH + drop_x - 1) * 6 + 1] -= sediment_fac * 0.9f;
 
             drop_deri = glm::normalize(drop_deri);
-            drop_x = ceil(drop_x + drop_deri.x);
-            drop_z = ceil(drop_z + drop_deri.y);
+            if(drop_deri.x > 0){
+                drop_x = ceil(drop_x + drop_deri.x - 0.3f);
+            }else{
+                drop_x = floor(drop_x + drop_deri.x + 0.3f);
+            }
+            if(drop_deri.y > 0){
+                drop_z = ceil(drop_z + drop_deri.y - 0.3f);
+            }else{
+                drop_z = floor(drop_z + drop_deri.y + 0.3f);
+            }
 
             drop_mass -= sediment_fac;
             drop_deri = drop_derivation(vertices_ceil, drop_x, drop_z);
         }
 
         if(drop_down){
+            //Wachstum des Bodens
+            sediment_fac = 1.f/(growth_fac+1.f) * drop_mass;
             float height_diff = vertices_ceil[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1] -
                                 vertices_floor[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1] + PLANE_DIFF;
             //radius abhängig von höhendifferenz, growth ebenfall
-            float stalag_m_drop_radius = height_diff * sediment_fac / 2 + drop_radius;
+            float stalag_m_drop_radius = height_diff * sediment_fac / PLANE_DIFF * 2 + drop_radius;
             float stalag_m_drop_growth = sediment_fac / stalag_m_drop_radius * 2.5f;
 
             //test if point is in radius
@@ -952,11 +973,11 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
                     if (distance_tmp <= stalag_m_drop_radius) {
 
                         if (distance_tmp <= 3.f / 5.f * stalag_m_drop_radius) {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.9;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.8;
                         } else if (distance_tmp <= 4.f / 5.f * stalag_m_drop_radius) {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.85f;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.75f;
                         } else {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.8f;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.7f;
                         }
                     }
                 }
@@ -997,7 +1018,7 @@ glm::vec2 drop_derivation(float* vertices, float x, float z){
     float x_dir = compAdd(glm::matrixCompMult(sobel_hor, sur_mat));
     float z_dir = compAdd(glm::matrixCompMult(sobel_vert, sur_mat));
 
-    return glm::vec2(x_dir, z_dir);
+    return -glm::vec2(x_dir, z_dir);
 
 }
 

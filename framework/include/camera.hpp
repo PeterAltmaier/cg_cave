@@ -3,7 +3,7 @@
 #include "common.hpp"
 
 struct camera {
-    camera(GLFWwindow* window);
+    camera(GLFWwindow* window, unsigned int plane_width, unsigned int plane_depth);
 
     virtual ~camera();
 
