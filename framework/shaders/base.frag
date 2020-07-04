@@ -19,11 +19,11 @@ void main()
 
 	vec3 light_dir_point = normalize(light_dir-normalize(pos));
 	float dist = 1.f/float(length(vec3(200.f,50.f,200.f)-pos));
-	float light = dot(interp_normal,light_dir_point);//*dist*100*rand_light;
+	float light = dot(interp_normal,light_dir_point)*dist*30*rand_light;
 	vec3 light_colored = vec3(1.f,0.6f,0.2f)*light;
 	vec2 tc = getUVCoordinates(normalize(pos));
 	FragColor = texture2D(tex,tc);
-	FragColor = clamp(light, 0.1f, 1.f) * FragColor;
+	FragColor = clamp(light, 0.01f, 1.f) * FragColor;
 	//FragColor = vec4(light_colored,1.f)*FragColor;
 }
 
