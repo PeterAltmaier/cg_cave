@@ -21,7 +21,7 @@ const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
 const unsigned int PLANE_WIDTH = 400;
 const unsigned int PLANE_DEPTH = 400;
-const unsigned int NUM_STICKS = 600;
+const unsigned int NUM_STICKS = 1000;
 const unsigned int PLANE_DIFF = 115;
 bool cam_movement = false;
 
@@ -85,8 +85,8 @@ main(int, char* argv[]) {
     float* vertices_ceil = new float[PLANE_DEPTH * PLANE_WIDTH * 6];
 
     face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
-    float ceil_roughness[] = { 20.f,9.f, 3.f };
-    float ceil_amp_fit [] = { 4.f, 1.f, 0.6f };
+    float ceil_roughness[] = { 24.f,8.f, 3.f };
+    float ceil_amp_fit [] = { 3.f, 1.f, 0.6f };
 
     //sticks data
     float* sticks_data = new float[NUM_STICKS*4];
@@ -290,28 +290,28 @@ main(int, char* argv[]) {
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
             growth_factor_start++;
         }
-        else if(growth_time_sticks < 30){
+        else if(growth_time_sticks < 35){
             //Wachstum der Ebenen
-            if(growth_time_sticks < 30)
-                growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
-
+            // ? if(growth_time_sticks < 30)
+            growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
+        
             generateDrops(vertices_ceil, vertices_floor);
-
+        
             //ceiling
             glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
             calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                 generator_ceil,-1);
             glBufferSubData(GL_ARRAY_BUFFER,0,0,NULL);
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
-
+        
             //floor
             glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
             calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                generator_floor,1);
-
+        
             glBufferSubData(GL_ARRAY_BUFFER, 0, 0, NULL);
             glBufferSubData(GL_ARRAY_BUFFER, 0, 6 * num_vertices * sizeof(float), vertices_floor);
-
+        
             growth_time_sticks++;
         }
         glBindVertexArray(VAO[0]);
@@ -887,7 +887,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> drop_pos_gen(20, PLANE_WIDTH - 20); // distribution in range [1, 6]
-    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 4 * 0.6f, NUM_STICKS * 4);
+    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 4 * 0.6f, NUM_STICKS * 8);
 
     std::mt19937 e2(dev());
     std::uniform_real_distribution<> drop_mass_gen(0.03f, 0.3f);
@@ -923,7 +923,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
                 break;
             }
 
-            sediment_fac = 1.f/(growth_fac+1.f) * drop_mass;
+            sediment_fac = 1.f/((growth_fac)+1.f) * drop_mass;
 
             //Wachstum der Decke
             //Mitte
