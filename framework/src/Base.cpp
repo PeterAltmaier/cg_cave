@@ -887,12 +887,13 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> drop_pos_gen(20, PLANE_WIDTH - 20); // distribution in range [1, 6]
-    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 4 * 0.6f, NUM_STICKS * 8);
+    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 20 * 0.6f, NUM_STICKS * 20);
 
     std::mt19937 e2(dev());
     std::uniform_real_distribution<> drop_mass_gen(0.03f, 0.3f);
 
     int drop_x,drop_z;
+    float drop_y;
     float drop_radius = 1.5f;
     float drop_mass;
     glm::vec2 drop_deri;
@@ -905,6 +906,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
     for(int i= 0;i<drop_cnt;i++){
         drop_x = drop_pos_gen(rng);
         drop_z = drop_pos_gen(rng);
+        drop_y = vertices_ceil[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1];
 
         drop_mass = abs(drop_mass_gen(e2));
         drop_deri = drop_derivation(vertices_ceil, drop_x, drop_z);
@@ -923,21 +925,42 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
                 break;
             }
 
-            sediment_fac = 1.f/((growth_fac)+1.f) * drop_mass;
+            
+            
+            if (growth_fac > 10) {
+                sediment_fac = 0.4;
+            }
+            else {
+                sediment_fac = 1.f / ((growth_fac)+1.f) * drop_mass;
+            }
+            
+            
+            //sediment_fac = 0.1f * drop_mass;
 
-            //Wachstum der Decke
-            //Mitte
-            vertices_ceil[(drop_z * PLANE_DEPTH +drop_x) * 6 + 1] -= sediment_fac;
-            //"Kreuz"
-            vertices_ceil[((drop_z + 1) * PLANE_DEPTH + drop_x) * 6 + 1] -= sediment_fac * 0.95f;
-            vertices_ceil[((drop_z - 1) * PLANE_DEPTH + drop_x) * 6 + 1] -= sediment_fac * 0.95f;
-            vertices_ceil[(drop_z * PLANE_DEPTH + drop_x + 1) * 6 + 1] -= sediment_fac * 0.95f;
-            vertices_ceil[(drop_z * PLANE_DEPTH + drop_x - 1) * 6 + 1] -= sediment_fac * 0.95f;
-            //Diagonale
-            vertices_ceil[((drop_z + 1) * PLANE_DEPTH + drop_x + 1) * 6 + 1] -= sediment_fac * 0.9f;
-            vertices_ceil[((drop_z + 1) * PLANE_DEPTH + drop_x - 1) * 6 + 1] -= sediment_fac * 0.9f;
-            vertices_ceil[((drop_z - 1)* PLANE_DEPTH + drop_x + 1) * 6 + 1] -= sediment_fac * 0.9f;
-            vertices_ceil[((drop_z - 1)* PLANE_DEPTH + drop_x - 1) * 6 + 1] -= sediment_fac * 0.9f;
+
+            //drop einfluss bestimmen + wachstum
+            for (int u = drop_z - ceil(drop_radius); u < drop_z + ceil(drop_radius) + 1; u++) {
+                for (int v = drop_x - ceil(drop_radius); v <drop_x + ceil(drop_radius)+ 1; v++) {
+                    //test ob in Kugelumgebung
+                    float distance_tmp = glm::distance(glm::vec3(v, vertices_ceil[(u*PLANE_DEPTH + v)*6+1],u), glm::vec3(drop_x, drop_y, drop_z));
+                    if (distance_tmp <= drop_radius) {
+
+                        //zentrum
+                        if (distance_tmp < 1.f) {
+                            vertices_ceil[(u * PLANE_DEPTH + v) * 6 + 1] -= sediment_fac * 1.f;
+                        }
+                        //direkte nachbarn
+                        else if (distance_tmp < 1.5f) {
+                            vertices_ceil[(u * PLANE_DEPTH + v) * 6 + 1] -= sediment_fac * 0.95f;
+                        }
+                        //diagonale
+                        else {
+                            vertices_ceil[(u * PLANE_DEPTH + v) * 6 + 1] -= sediment_fac * 0.9f;
+                        }
+                    }
+                }
+            }
+
 
             drop_deri = glm::normalize(drop_deri);
             if(drop_deri.x > 0){
@@ -973,11 +996,11 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
                     if (distance_tmp <= stalag_m_drop_radius) {
 
                         if (distance_tmp <= 3.f / 5.f * stalag_m_drop_radius) {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.8;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.6;
                         } else if (distance_tmp <= 4.f / 5.f * stalag_m_drop_radius) {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.75f;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.55f;
                         } else {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.7f;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_drop_growth * 0.5f;
                         }
                     }
                 }
