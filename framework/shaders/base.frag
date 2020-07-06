@@ -2,6 +2,7 @@
 
 in vec3 interp_normal;
 in vec3 pos;
+in vec3 toCameraVector;
 
 uniform vec3 light_dir;
 uniform sampler2D tex;
@@ -22,8 +23,12 @@ void main()
 	float light = dot(interp_normal,light_dir_point);//*dist*100*rand_light;
 	vec3 light_colored = vec3(1.f,0.6f,0.2f)*light;
 	vec2 tc = getUVCoordinates(normalize(pos));
+
+	vec3 viewVector = normalize(toCameraVector);
+	float refractiveFactor = dot(viewVector, interp_normal);
+
 	FragColor = texture2D(tex,tc);
-	FragColor = clamp(light, 0.1f, 1.f) * FragColor;
+	FragColor =refractiveFactor* clamp(light, 0.1f, 1.f) * FragColor;
 	//FragColor = vec4(light_colored,1.f)*FragColor;
 }
 

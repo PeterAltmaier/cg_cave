@@ -194,6 +194,7 @@ main(int, char* argv[]) {
     int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
     int tex_loc = glGetUniformLocation(shaderProgram, "tex");
     int rand_light_loc = glGetUniformLocation(shaderProgram, "rand_light");
+    int cameraPositon_loc = glGetUniformLocation(shaderProgram, "cameraPosition");
     glm::vec3 light_dir = glm::normalize(glm::vec3((float)PLANE_WIDTH/2.f, 20, (float)PLANE_DEPTH/2.f));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
 
@@ -267,6 +268,7 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
+        glUniform3fv(cameraPositon_loc, 1, glm::value_ptr(cam.position()));
         if(lauf % 8 == 0) {
             glUniform1f(rand_light_loc, dist_light(e2));
         }
