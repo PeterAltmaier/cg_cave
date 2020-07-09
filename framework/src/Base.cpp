@@ -386,7 +386,7 @@ void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigne
     }
     */
 
-    //flächen und deren Normale berechnen
+    //flÃ¤chen und deren Normale berechnen
     for (unsigned z = 0; z < PLANE_DEPTH - 1; z++) {
         for (unsigned x = 0; x < PLANE_WIDTH - 1; x++) {
             //coords rausholen und in faces speichern
@@ -413,7 +413,7 @@ void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigne
         }
     }
 
-    //vertex normalen berechnen aus gewichtetem Durchschnitt, die vertices am Rand müssen gesondert betrachtet werden, erstmal egal, fürs große ganze
+    //vertex normalen berechnen aus gewichtetem Durchschnitt, die vertices am Rand mÃ¼ssen gesondert betrachtet werden, erstmal egal, fÃ¼rs groÃŸe ganze
     //todo Randvertices normalen berechnen
     //jeder innere vertex grenzt an sechs verschiedene Dreiecke
     for (unsigned z = 1; z < PLANE_DEPTH - 1; z++) {
@@ -499,7 +499,7 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
         int radius_ceiled = (int)ceil(radius);
         srand(time(NULL));
         growth_fac = sticks_data[i * 4 + 3];
-        //Wachstum nur, wenn Ebenen sich nicht berühren
+        //Wachstum nur, wenn Ebenen sich nicht berÃ¼hren
         float distance_test = vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] - vertices_floor[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] + PLANE_DIFF;
 
         if(distance_test > 0) {
@@ -529,7 +529,7 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
             //von unten stalagmiten wachsen lassen
             float height_diff = vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] -
                                 vertices_floor[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] + PLANE_DIFF;
-            //radius abhängig von höhendifferenz, growth ebenfall
+            //radius abhÃ¤ngig von hÃ¶hendifferenz, growth ebenfall
             float stalag_m_radius = height_diff * growth_fac / 2 + radius;
             float stalag_m_growth = growth_fac / stalag_m_radius * 2.5f;
 
@@ -889,7 +889,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> drop_pos_gen(20, PLANE_WIDTH - 20); // distribution in range [1, 6]
-    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 20 * 0.6f, NUM_STICKS * 20);
+    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 3 * 0.6f, NUM_STICKS * 3);
 
     std::mt19937 e2(dev());
     std::uniform_real_distribution<> drop_mass_gen(0.03f, 0.3f);
@@ -928,15 +928,15 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
             }
 
             
-            
-            if (growth_fac > 10) {
-                sediment_fac = 0.4;
-            }
-            else {
-                sediment_fac = 1.f / ((growth_fac)+1.f) * drop_mass;
-            }
-            
-            
+
+//            if (growth_fac > 10) {
+//                sediment_fac = 0.4;
+//            }
+//            else {
+//                sediment_fac = 1.f / ((growth_fac)+1.f) * drop_mass;
+//            }
+
+            sediment_fac = 1.f / ((growth_fac)+1.f) * drop_mass;
             //sediment_fac = 0.1f * drop_mass;
 
 
@@ -985,7 +985,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
             sediment_fac = 1.f/(growth_fac+1.f) * drop_mass;
             float height_diff = vertices_ceil[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1] -
                                 vertices_floor[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1] + PLANE_DIFF;
-            //radius abhängig von höhendifferenz, growth ebenfall
+            //radius abhÃ¤ngig von hÃ¶hendifferenz, growth ebenfall
             float stalag_m_drop_radius = height_diff * sediment_fac / PLANE_DIFF * 2 + drop_radius;
             float stalag_m_drop_growth = sediment_fac / stalag_m_drop_radius * 2.5f;
 
@@ -1027,7 +1027,7 @@ glm::vec2 drop_derivation(float* vertices, float x, float z){
     sobel_vert[1] = glm::vec3(-2,0,2);
     sobel_vert[2] = glm::vec3(-1,0,1);
 
-    //test auf Punkt ist Tiefpunkt und Höhenwerte in Mat speichern
+    //test auf Punkt ist Tiefpunkt und HÃ¶henwerte in Mat speichern
     for(int i = -1; i < 2; i++){
         for(int j = -1;j < 2; j++){
             sur_mat[i+1][j+1] = vertices[((cent_z + j) * PLANE_DEPTH + (cent_x + i)) * 6 +1];
