@@ -253,7 +253,7 @@ camera::camera(GLFWwindow* window, unsigned int plane_width, unsigned int plane_
 
     state->period_mouse = 0.f;
 
-    state->look_at = glm::vec3(plane_width/2,20.f,plane_depth/2);
+    state->look_at = glm::vec3(plane_width/2,30.f,plane_depth/2);
     state->phi = M_PI+0.3f;
     state->theta = 0.f;
     state->radius = 5.f;
