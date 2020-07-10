@@ -14,8 +14,8 @@
 #include <math.h>
 #include <random>
 
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 800;
+const int WINDOW_WIDTH = 1600;
+const int WINDOW_HEIGHT = 900;
 const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
