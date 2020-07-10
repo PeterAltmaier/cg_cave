@@ -246,11 +246,21 @@ main(int, char* argv[]) {
 
         float current_Frame = glfwGetTime();
         delta_time = current_Frame -last_frame;
-        while (delta_time < 0.f) {
-            Sleep(5);
-            current_Frame = glfwGetTime();
-            delta_time = current_Frame - last_frame;
+        if (growth_time_sticks < 450.f) {
+            while (delta_time < 1.f) {
+                Sleep(5);
+                current_Frame = glfwGetTime();
+                delta_time = current_Frame - last_frame;
+            }
         }
+        else {
+            while (delta_time < 0.03333333f) {
+                Sleep(5);
+                current_Frame = glfwGetTime();
+                delta_time = current_Frame - last_frame;
+            }
+        }
+        
         last_frame=current_Frame;
 
         key_pressed(window,pressed);
@@ -275,7 +285,7 @@ main(int, char* argv[]) {
 
         //Growth //soll 150.f sein
 
-        if(growth_factor_start<=-1) { //todo anpassen
+        if(growth_factor_start<=150.f) { //todo anpassen
             glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
             growth_plane(vertices_floor, vertices_floor_tmp, growth_factor_start, 150.f);
             calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
@@ -293,7 +303,7 @@ main(int, char* argv[]) {
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
             growth_factor_start++;
         }
-        else if(growth_time_sticks < 450){
+        else if(growth_time_sticks < 450.f){
             //Wachstum der Ebenen
             // ? if(growth_time_sticks < 30)
             growSticks(vertices_ceil, vertices_floor, sticks_data);
@@ -890,7 +900,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> drop_pos_gen(20, PLANE_WIDTH - 20); // distribution in range [1, 6]
-    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 12 * 0.6f, NUM_STICKS * 12);
+    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 8 * 0.6f, NUM_STICKS * 8);
 
     std::mt19937 e2(dev());
     std::uniform_real_distribution<> drop_mass_gen(0.03f, 0.05f);
