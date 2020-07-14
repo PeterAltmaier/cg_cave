@@ -3,7 +3,7 @@
 #include "common.hpp"
 
 struct camera {
-    camera(GLFWwindow* window, unsigned int plane_width, unsigned int plane_depth);
+    camera(GLFWwindow* window, unsigned int plane_width, unsigned int plane_depth, float* vertices_floor);
 
     virtual ~camera();
 
@@ -11,6 +11,8 @@ struct camera {
 
     glm::mat4
     view_matrix() const;
+
+    void set_vertices(float* vertices_floor);
 
     bool is_not_dragging_w_momentum();
 

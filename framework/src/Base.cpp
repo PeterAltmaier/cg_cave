@@ -14,14 +14,14 @@
 #include <math.h>
 #include <random>
 
-const int WINDOW_WIDTH = 1600;
-const int WINDOW_HEIGHT = 900;
+const int WINDOW_WIDTH = 1920;
+const int WINDOW_HEIGHT = 1080;
 const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
 const unsigned int PLANE_WIDTH = 400;
 const unsigned int PLANE_DEPTH = 400;
-const unsigned int NUM_STICKS = 1000;
+const unsigned int NUM_STICKS = 800;
 const unsigned int PLANE_DIFF = 115;
 bool cam_movement = false;
 
@@ -86,7 +86,7 @@ main(int, char* argv[]) {
 
     face* faces_ceil = new face[(PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2];
     float ceil_roughness[] = { 24.f,8.f, 3.f };
-    float ceil_amp_fit [] = { 3.f, 1.f, 0.6f };
+    float ceil_amp_fit [] = { 3.f, 1.f, 0.6 };
 
     //sticks data
     float* sticks_data = new float[NUM_STICKS*4];
@@ -151,7 +151,7 @@ main(int, char* argv[]) {
 
     GLFWwindow* window = initOpenGL(WINDOW_WIDTH, WINDOW_HEIGHT, argv[0]);
     glfwSetFramebufferSizeCallback(window, resizeCallback);
-    camera cam(window, PLANE_WIDTH, PLANE_DEPTH);
+    camera cam(window, PLANE_WIDTH, PLANE_DEPTH, vertices_floor);
 
 
     unsigned int texture;
@@ -202,6 +202,7 @@ main(int, char* argv[]) {
 
 
     glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_FRAMEBUFFER_SRGB);
 
     unsigned int VAO[2];
     glGenVertexArrays(2,VAO);
@@ -247,7 +248,7 @@ main(int, char* argv[]) {
         float current_Frame = glfwGetTime();
         delta_time = current_Frame -last_frame;
         if (growth_time_sticks < 450.f) {
-            while (delta_time < 1.f) {
+            while (delta_time < 1.f) { //1.f
                 Sleep(5);
                 current_Frame = glfwGetTime();
                 delta_time = current_Frame - last_frame;
@@ -303,7 +304,7 @@ main(int, char* argv[]) {
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
             growth_factor_start++;
         }
-        else if(growth_time_sticks < 450.f){
+        else if(growth_time_sticks < 450.f){ //450.f
             //Wachstum der Ebenen
             // ? if(growth_time_sticks < 30)
             growSticks(vertices_ceil, vertices_floor, sticks_data);
@@ -326,6 +327,9 @@ main(int, char* argv[]) {
             glBufferSubData(GL_ARRAY_BUFFER, 0, 6 * num_vertices * sizeof(float), vertices_floor);
         
             growth_time_sticks++;
+        }
+        else {
+            cam.set_vertices(vertices_floor);
         }
         glBindVertexArray(VAO[0]);
 
@@ -900,7 +904,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> drop_pos_gen(20, PLANE_WIDTH - 20); // distribution in range [1, 6]
-    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 8 * 0.6f, NUM_STICKS * 8);
+    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 10 * 0.6f, NUM_STICKS * 10);
 
     std::mt19937 e2(dev());
     std::uniform_real_distribution<> drop_mass_gen(0.03f, 0.05f);
