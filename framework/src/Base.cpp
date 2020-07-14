@@ -14,8 +14,8 @@
 #include <math.h>
 #include <random>
 
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 800;
+const int WINDOW_WIDTH = 1600;
+const int WINDOW_HEIGHT = 900;
 const float FOV = 90.f;
 const float NEAR_VALUE = 0.1f;
 const float FAR_VALUE = 1000.f;
@@ -52,7 +52,7 @@ void generateSticks(float* sticks_data,int** stick_col_mat);
 
 void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, float growth_range);
 
-void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int growth_iter);
+void growSticks(float* vertices, float* vertices_floor, float* sticks_data);
 
 bool stick_col_set(int** col_mat, int x, int z, float radius);
 
@@ -194,6 +194,7 @@ main(int, char* argv[]) {
     int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
     int tex_loc = glGetUniformLocation(shaderProgram, "tex");
     int rand_light_loc = glGetUniformLocation(shaderProgram, "rand_light");
+    int cameraPositon_loc = glGetUniformLocation(shaderProgram, "cameraPosition");
     glm::vec3 light_dir = glm::normalize(glm::vec3((float)PLANE_WIDTH/2.f, 20, (float)PLANE_DEPTH/2.f));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
 
@@ -245,11 +246,21 @@ main(int, char* argv[]) {
 
         float current_Frame = glfwGetTime();
         delta_time = current_Frame -last_frame;
-        while (delta_time < 0.016666f) {
-            Sleep(5);
-            current_Frame = glfwGetTime();
-            delta_time = current_Frame - last_frame;
+        if (growth_time_sticks < 450.f) {
+            while (delta_time < 1.f) {
+                Sleep(5);
+                current_Frame = glfwGetTime();
+                delta_time = current_Frame - last_frame;
+            }
         }
+        else {
+            while (delta_time < 0.03333333f) {
+                Sleep(5);
+                current_Frame = glfwGetTime();
+                delta_time = current_Frame - last_frame;
+            }
+        }
+        
         last_frame=current_Frame;
 
         key_pressed(window,pressed);
@@ -267,14 +278,16 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
+        glUniform3fv(cameraPositon_loc, 1, glm::value_ptr(cam.position()));
         if(lauf % 8 == 0) {
             glUniform1f(rand_light_loc, dist_light(e2));
         }
 
-        //Growth
-        if(growth_factor_start<=-1) { //todo anpassen
+        //Growth //soll 150.f sein
+
+        if(growth_factor_start<=150.f) { //todo anpassen
             glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
-            growth_plane(vertices_floor, vertices_floor_tmp, growth_factor_start, 500.f);
+            growth_plane(vertices_floor, vertices_floor_tmp, growth_factor_start, 150.f);
             calculateNormals(vertices_floor, num_vertices, faces_floor, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                              generator_floor,1);
             
@@ -282,7 +295,7 @@ main(int, char* argv[]) {
             glBufferSubData(GL_ARRAY_BUFFER, 0 ,6 * num_vertices * sizeof(float),vertices_floor);
             
             glBindBuffer(GL_ARRAY_BUFFER, VBO_ceil);
-            growth_plane(vertices_ceil, vertices_ceil_tmp, growth_factor_start, 500.f);
+            growth_plane(vertices_ceil, vertices_ceil_tmp, growth_factor_start, 150.f);
             calculateNormals(vertices_ceil, num_vertices, faces_ceil, (PLANE_DEPTH - 1) * (PLANE_WIDTH - 1) * 2,
                              generator_ceil,-1);
             
@@ -290,10 +303,10 @@ main(int, char* argv[]) {
             glBufferSubData(GL_ARRAY_BUFFER, 0  ,6 * num_vertices * sizeof(float),vertices_ceil);
             growth_factor_start++;
         }
-        else if(growth_time_sticks < 35){
+        else if(growth_time_sticks < 450.f){
             //Wachstum der Ebenen
             // ? if(growth_time_sticks < 30)
-            growSticks(vertices_ceil, vertices_floor, sticks_data, growth_time_sticks);
+            growSticks(vertices_ceil, vertices_floor, sticks_data);
         
             generateDrops(vertices_ceil, vertices_floor);
         
@@ -348,7 +361,7 @@ void resizeCallback(GLFWwindow*, int width, int height)
 }
 
 void growth_plane(float* vertices, float* tmp_vertices, float growth_factor, float growth_range) {
-    float factor = 0.000004 * pow(growth_factor,2);
+    float factor = 1./pow(growth_range, 2) * pow(growth_factor,2);
     if (growth_factor <= growth_range) {
         for (int z = 0; z < PLANE_DEPTH; z++) {
             for (int x = 0; x < PLANE_DEPTH; x++) {
@@ -384,7 +397,7 @@ void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigne
     }
     */
 
-    //flächen und deren Normale berechnen
+    //flÃ¤chen und deren Normale berechnen
     for (unsigned z = 0; z < PLANE_DEPTH - 1; z++) {
         for (unsigned x = 0; x < PLANE_WIDTH - 1; x++) {
             //coords rausholen und in faces speichern
@@ -411,7 +424,7 @@ void calculateNormals(float* vertices, unsigned int v_size, face* faces, unsigne
         }
     }
 
-    //vertex normalen berechnen aus gewichtetem Durchschnitt, die vertices am Rand müssen gesondert betrachtet werden, erstmal egal, fürs große ganze
+    //vertex normalen berechnen aus gewichtetem Durchschnitt, die vertices am Rand mÃ¼ssen gesondert betrachtet werden, erstmal egal, fÃ¼rs groÃŸe ganze
     //todo Randvertices normalen berechnen
     //jeder innere vertex grenzt an sechs verschiedene Dreiecke
     for (unsigned z = 1; z < PLANE_DEPTH - 1; z++) {
@@ -480,12 +493,12 @@ void generateIndices(unsigned int* indices, unsigned int ind_size) {
     }
 }
 
-void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int time_growth) {
+void growSticks(float* vertices, float* vertices_floor, float* sticks_data) {
     float radius, growth_fac;
     int  x_pos, z_pos;
     std::random_device dev;
     std::mt19937 e2(dev());
-    std::uniform_real_distribution<> dist_growth(0.001f, 0.2f);
+    //std::uniform_real_distribution<> dist_growth(0.001f, 0.2f);
     //todo time_growth entfernen oder nicht linear steigen lassen
 
     //iterate over sticks
@@ -496,8 +509,8 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
         radius = sticks_data[i * 4 + 2];
         int radius_ceiled = (int)ceil(radius);
         srand(time(NULL));
-        growth_fac = sticks_data[i * 4 + 3];
-        //Wachstum nur, wenn Ebenen sich nicht berühren
+        growth_fac = sticks_data[i * 4 + 3] * 1.7f;
+        //Wachstum nur, wenn Ebenen sich nicht berÃ¼hren
         float distance_test = vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] - vertices_floor[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] + PLANE_DIFF;
 
         if(distance_test > 0) {
@@ -509,15 +522,15 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
                     if (distance_tmp <= radius) {
 
                         if (distance_tmp < 1.41f) {
-                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac * time_growth * 1.1f;
+                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac  * 1.1f;
                         } else if (distance_tmp < 2.0) {
-                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac * time_growth * 1.f;
+                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac  * 1.f;
                         } else if (distance_tmp < 2.3) {
-                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac * time_growth * 0.9f;
+                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac  * 0.9f;
                         } else if (distance_tmp < 2.8) {
-                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac * time_growth * 0.9f;
+                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac  * 0.9f;
                         } else {
-                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac * time_growth * 0.8f;
+                            vertices[(u * PLANE_DEPTH + v) * 6 + 1] -= growth_fac  * 0.8f;
                         }
                     }
                 }
@@ -527,7 +540,7 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
             //von unten stalagmiten wachsen lassen
             float height_diff = vertices[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] -
                                 vertices_floor[(z_pos * PLANE_DEPTH + x_pos) * 6 + 1] + PLANE_DIFF;
-            //radius abhängig von höhendifferenz, growth ebenfall
+            //radius abhÃ¤ngig von hÃ¶hendifferenz, growth ebenfall
             float stalag_m_radius = height_diff * growth_fac / 2 + radius;
             float stalag_m_growth = growth_fac / stalag_m_radius * 2.5f;
 
@@ -540,11 +553,11 @@ void growSticks(float* vertices, float* vertices_floor, float* sticks_data, int 
                     if (distance_tmp <= stalag_m_radius) {
 
                         if (distance_tmp <= 3.f / 5.f * stalag_m_radius) {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * time_growth * 0.9;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * 0.9;
                         } else if (distance_tmp <= 4.f / 5.f * stalag_m_radius) {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * time_growth * 0.85f;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * 0.85f;
                         } else {
-                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * time_growth * 0.8f;
+                            vertices_floor[(u * PLANE_DEPTH + v) * 6 + 1] += stalag_m_growth * 0.8f;
                         }
                     }
                 }
@@ -616,7 +629,7 @@ void generateSticks(float* sticks_data, int** stick_col_mat) {
                 //radius from 1.1 to 3.1
                 sticks_data[running_stick_index * 4 + 2] = radius_tmp;
                 //growth speed
-                sticks_data[running_stick_index * 4 + 3] = abs(dist_growth(e2));
+                sticks_data[running_stick_index * 4 + 3] = glm::clamp(dist_growth(e2), 0.001, 5.);
 
 
                 running_stick_index++;
@@ -887,10 +900,10 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> drop_pos_gen(20, PLANE_WIDTH - 20); // distribution in range [1, 6]
-    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 20 * 0.6f, NUM_STICKS * 20);
+    std::uniform_int_distribution<> drop_cnt_gen(NUM_STICKS * 8 * 0.6f, NUM_STICKS * 8);
 
     std::mt19937 e2(dev());
-    std::uniform_real_distribution<> drop_mass_gen(0.03f, 0.3f);
+    std::uniform_real_distribution<> drop_mass_gen(0.03f, 0.05f);
 
     int drop_x,drop_z;
     float drop_y;
@@ -926,15 +939,15 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
             }
 
             
-            
-            if (growth_fac > 10) {
-                sediment_fac = 0.4;
-            }
-            else {
-                sediment_fac = 1.f / ((growth_fac)+1.f) * drop_mass;
-            }
-            
-            
+
+//            if (growth_fac > 10) {
+//                sediment_fac = 0.4;
+//            }
+//            else {
+//                sediment_fac = 1.f / ((growth_fac)+1.f) * drop_mass;
+//            }
+
+            sediment_fac = 1.f / ((growth_fac)+1.f) * drop_mass;
             //sediment_fac = 0.1f * drop_mass;
 
 
@@ -942,7 +955,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
             for (int u = drop_z - ceil(drop_radius); u < drop_z + ceil(drop_radius) + 1; u++) {
                 for (int v = drop_x - ceil(drop_radius); v <drop_x + ceil(drop_radius)+ 1; v++) {
                     //test ob in Kugelumgebung
-                    float distance_tmp = glm::distance(glm::vec3(v, vertices_ceil[(u*PLANE_DEPTH + v)*6+1],u), glm::vec3(drop_x, drop_y, drop_z));
+                    float distance_tmp = glm::distance(glm::vec2(v,u), glm::vec2(drop_x, drop_z));
                     if (distance_tmp <= drop_radius) {
 
                         //zentrum
@@ -983,7 +996,7 @@ void generateDrops(float* vertices_ceil, float* vertices_floor){
             sediment_fac = 1.f/(growth_fac+1.f) * drop_mass;
             float height_diff = vertices_ceil[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1] -
                                 vertices_floor[(drop_z * PLANE_DEPTH + drop_x) * 6 + 1] + PLANE_DIFF;
-            //radius abhängig von höhendifferenz, growth ebenfall
+            //radius abhÃ¤ngig von hÃ¶hendifferenz, growth ebenfall
             float stalag_m_drop_radius = height_diff * sediment_fac / PLANE_DIFF * 2 + drop_radius;
             float stalag_m_drop_growth = sediment_fac / stalag_m_drop_radius * 2.5f;
 
@@ -1025,7 +1038,7 @@ glm::vec2 drop_derivation(float* vertices, float x, float z){
     sobel_vert[1] = glm::vec3(-2,0,2);
     sobel_vert[2] = glm::vec3(-1,0,1);
 
-    //test auf Punkt ist Tiefpunkt und Höhenwerte in Mat speichern
+    //test auf Punkt ist Tiefpunkt und HÃ¶henwerte in Mat speichern
     for(int i = -1; i < 2; i++){
         for(int j = -1;j < 2; j++){
             sur_mat[i+1][j+1] = vertices[((cent_z + j) * PLANE_DEPTH + (cent_x + i)) * 6 +1];

@@ -64,6 +64,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define strtok_s strtok_r
 #endif
 
+
 using namespace Assimp;
 
 static const aiImporterDesc desc = {

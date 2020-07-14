@@ -1,19 +1,35 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 normal;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
 
-uniform mat4 model;
-uniform mat4 view;
+out vec2 TexCoords;
+
+out VS_OUT {
+    vec3 FragPos;
+    vec3 Normal;
+    vec2 TexCoords;
+    vec4 FragPosLightSpace;
+    vec3 interp_normal;
+	vec3 pos;
+	vec3 toCameraVector;
+} vs_out;
+
 uniform mat4 projection;
-
-out vec3 interp_normal;
-out vec3 pos;
+uniform mat4 view;
+uniform mat4 model;
+uniform mat4 lightSpaceMatrix;
+uniform vec3 cameraPosition;
 
 void main()
 {
-	gl_Position = projection * view * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);
-	interp_normal = normalize((transpose(inverse(model)) * vec4(normal, 0.0)).xyz);
-	pos = aPos;
+    vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
+    vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
+    vs_out.TexCoords = aTexCoords;
+    vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
+    vec4 worldPositon = model * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+	gl_Position = projection * view * worldPositon;
+	vs_out.interp_normal = normalize((transpose(inverse(model)) * vec4(aNormal, 0.0)).xyz);
+	vs_out.pos = aPos;
+	vs_out.toCameraVector = cameraPosition - worldPositon.xyz;
 }
-
-
