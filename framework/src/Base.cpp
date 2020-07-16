@@ -191,10 +191,17 @@ main(int, char* argv[]) {
     int model_mat_loc = glGetUniformLocation(shaderProgram, "model");
     int view_mat_loc = glGetUniformLocation(shaderProgram, "view");
     int proj_mat_loc = glGetUniformLocation(shaderProgram, "projection");
-    int light_dir_loc = glGetUniformLocation(shaderProgram, "light_dir");
+    int light_dir_loc = glGetUniformLocation(shaderProgram, "light_pos_point");
     int tex_loc = glGetUniformLocation(shaderProgram, "tex");
     int rand_light_loc = glGetUniformLocation(shaderProgram, "rand_light");
     int cameraPositon_loc = glGetUniformLocation(shaderProgram, "cameraPosition");
+    int inner_radius_loc = glGetUniformLocation(shaderProgram, "inner_radius");
+    int outer_radius_loc = glGetUniformLocation(shaderProgram, "outer_radius");
+    int camera_dir_loc = glGetUniformLocation(shaderProgram, "cam_dir");
+
+    glUniform1f(inner_radius_loc, glm::cos(glm::radians(19.f)));
+    glUniform1f(outer_radius_loc, glm::cos(glm::radians(26.f)));
+
     glm::vec3 light_dir = glm::normalize(glm::vec3((float)PLANE_WIDTH/2.f, 20, (float)PLANE_DEPTH/2.f));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
 
@@ -279,12 +286,14 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, &proj_matrix[0][0]);
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
         glUniform3fv(cameraPositon_loc, 1, glm::value_ptr(cam.position()));
+        glUniform3fv(camera_dir_loc, 1, glm::value_ptr(cam.getDirection()));
+
         if(lauf % 8 == 0) {
             glUniform1f(rand_light_loc, dist_light(e2));
         }
 
         //Growth //soll 150.f sein
-
+        /*
         if(growth_factor_start<=150.f) { //todo anpassen
             glBindBuffer(GL_ARRAY_BUFFER, VBO_floor);
             growth_plane(vertices_floor, vertices_floor_tmp, growth_factor_start, 150.f);
@@ -327,6 +336,7 @@ main(int, char* argv[]) {
         
             growth_time_sticks++;
         }
+         */
         glBindVertexArray(VAO[0]);
 
         glDrawElements(GL_TRIANGLE_STRIP, total_indices, GL_UNSIGNED_INT, (void*)0);

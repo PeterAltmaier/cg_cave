@@ -79,9 +79,11 @@ drag_right_n(int x, int /*y*/, int dx, int dy) {
 
     float speed = 0.0f;
     if(x) {
+        //momentum at the beginning
         momentum = 1.f - 1.f / 9.f * (float) pow((state->period_mouse), 2);
         speed = 0.0015f;
     }else{
+        //momentum at the end
         speed = 0.0005f;
         momentum = 1.f / 9.f * (float) pow((state->period_mouse), 2);
     }
@@ -89,7 +91,7 @@ drag_right_n(int x, int /*y*/, int dx, int dy) {
 
     state->theta -= speed * dy * momentum;
     if (state->theta < -0.5*M_PI) state->theta = -0.5*M_PI;
-    if (state->theta >  0.5*M_PI) state->theta =  0.5*M_PI;
+    if (state->theta > 0.5*M_PI) state->theta = 0.5*M_PI;
     // technically not necessary, but might avoid numeric instability
     while (state->phi < 0.0)       state->phi += 2.0*M_PI;
     while (state->phi >= 2.0*M_PI) state->phi -= 2.0*M_PI;
@@ -112,15 +114,15 @@ drag_right(int /*x*/, int /*y*/, int dx, int dy) {
 
     drag_right_n(1, 0,-dx,-dy);
 
-    state->theta -= 0.0015f * dy;// * momentum;
+    state->theta -= 0.0015f * dy;
     if (state->theta < -0.5*M_PI) state->theta = -0.5*M_PI;
-    if (state->theta >  0.5*M_PI) state->theta =  0.5*M_PI;
+    if (state->theta > 0.5*M_PI) state->theta = 0.5*M_PI;
     // technically not necessary, but might avoid numeric instability
     while (state->phi < 0.0)       state->phi += 2.0*M_PI;
     while (state->phi >= 2.0*M_PI) state->phi -= 2.0*M_PI;
 
 
-    state->phi -= 0.0015f * dx;//  *momentum;
+    state->phi -= 0.0015f * dx;
     update();
 }
 
@@ -291,5 +293,18 @@ glm::vec3
 camera::position() const {
     glm::mat3 R(state->view_mat);
     glm::vec3 t(state->view_mat[3]);
-    return -glm::transpose(R) * t;
+    //return -glm::transpose(R) * t;
+    return state->look_at;
+}
+
+glm::vec3 camera::getDirection() {
+    glm::vec3 dir(state->view_mat[3]);
+    glm::vec4 dir_2 = state->view_mat * glm::vec4(0.0f,0.0f,-1.f,0.0f);
+    glm::vec3 dir_3 = glm::vec3(state->view_mat[0][3] * -1.f,state->view_mat[1][3],state->view_mat[2][3]);
+    //return dir;
+    glm::vec3 up = glm::vec3(state->view_mat[0][1],state->view_mat[1][1],state->view_mat[2][1]);
+    glm::vec3 camera_right = glm::vec3(state->view_mat[0][0],state->view_mat[1][0],state->view_mat[2][0]);
+    return glm::normalize(glm::cross(up,camera_right));
+    //return glm::vec3(dir_2);
+    //return dir_3;
 }

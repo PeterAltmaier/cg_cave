@@ -4,108 +4,68 @@ out vec4 FragColor;
 in VS_OUT {
     vec3 FragPos;
     vec3 Normal;
-    vec2 TexCoords;
-    vec4 FragPosLightSpace;
     vec3 interp_normal;
 	vec3 pos;
-	vec3 toCameraVector;
 } fs_in;
 
-uniform sampler2D diffuseTexture;
-uniform sampler2D shadowMap;
+
 uniform sampler2D tex;
 
 uniform float rand_light;
 
-uniform vec3 light_dir;
-uniform vec3 lightPos;
-uniform vec3 viewPos;
+uniform vec3 light_pos_point;
+uniform vec3 cameraPosition;
+uniform float inner_radius;
+uniform float outer_radius;
+uniform vec3 cam_dir;
+
 
 const float pi = 3.14159265359;
 
 vec2 getUVCoordinates(vec3 p);
 
-float ShadowCalculation(vec4 fragPosLightSpace)
-{
-    // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
-    // get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-    // calculate bias (based on depth map resolution and slope)
-    vec3 normal = normalize(fs_in.Normal);
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    // check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-    // PCF
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for(int x = -1; x <= 1; ++x)
-    {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
-        }
-    }
-    shadow /= 9.0;
 
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
-    if(projCoords.z > 1.0)
-        shadow = 0.0;
-
-    return shadow;
-}
 
 void main()
 {
 
-	float dist = 1.f/float(length(vec3(200.f,50.f,200.f)-fs_in.pos));
-
-    vec3 color = texture(diffuseTexture, getUVCoordinates(normalize(fs_in.pos))).rgb;
+	float dist = 1.f/float(length(vec3(200.f,50.f,200.f)-fs_in.FragPos));
+    float dist_flash = 1.f/float(length(cameraPosition-fs_in.FragPos));
+    //ermittelt die Texturdaten der Vertices
+    vec3 color = texture(tex, getUVCoordinates(normalize(fs_in.pos))).rgb;
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightColor = vec3(0.3);
-    // ambient
+    // ambienter Anteil
     vec3 ambient = 0.3 * color;
     // diffuse
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+    vec3 lightDir = normalize(light_pos_point - fs_in.FragPos);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * lightColor;
     // specular
-    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
+    vec3 viewDir = normalize(cameraPosition - fs_in.FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = 0.0;
     vec3 halfwayDir = normalize(lightDir + viewDir);
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
     vec3 specular = spec * lightColor;
-    // calculate shadow
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color * dist * 30 * rand_light;
 
+    //"Helmlicht" im inneren Radius wird mit 1 skaliert und zwischen outer und inner Radius absteigend mit zunehmendem Abstand
+    vec3 light_dir_flash = normalize(cameraPosition - fs_in.FragPos);
+    float theta = dot(light_dir_flash, normalize(vec3(-1.f,-1.f,-1.f) * cam_dir));
+    float epsi = inner_radius - outer_radius;
+    //Skalierungsfaktor
+    float smoothness = clamp((theta-outer_radius)/epsi,0.f,1.f);
+
+    //Lichtstärke an dem betrachteten Punkt
+    float spotlight = dot(fs_in.interp_normal, light_dir_flash) * smoothness;
+
+
+    //vec3 lighting = (ambient + (diffuse + specular)) * color * dist * 30 * rand_light;
+    vec3 lighting = ((ambient + diffuse + specular) * dist * 30 * rand_light * color + spotlight * 1000 * pow(dist_flash,1.5) * vec3(0.1f,0.1f,.4f));//;
+    //vec3 lighting = ( spotlight * 1 ) * color;
     FragColor = vec4(lighting, 1.0);
 }
 
-// void main()
-// {
-// 	vec2 tex_pos = vec2(pos.x,pos.z);
-
-// 	vec3 light_dir_point = normalize(light_dir-normalize(fs_in.pos));
-// 	float dist = 1.f/float(length(vec3(200.f,50.f,200.f)-pos));
-// 	float light = dot(interp_normal,light_dir_point);//*dist*100*rand_light;
-// 	vec3 light_colored = vec3(1.f,0.6f,0.2f)*light;
-// 	vec2 tc = getUVCoordinates(normalize(pos));
-
-// 	vec3 viewVector = normalize(toCameraVector);
-// 	float refractiveFactor = dot(viewVector, interp_normal);
-
-// 	FragColor = texture2D(tex,tc);
-// 	FragColor =refractiveFactor* clamp(light, 0.1f, 1.f) * FragColor;
-// 	//FragColor = vec4(light_colored,1.f)*FragColor;
-// }
 
 vec2 getUVCoordinates(vec3 p){
 	vec2 uv = vec2(0.0,0.0);
