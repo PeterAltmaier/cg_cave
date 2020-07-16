@@ -178,7 +178,7 @@ camera::keycallback(GLFWwindow* window,int key,float delta_time){
     int future_z = (state->look_at + trans).z;
 
     float height_diff = state->vertices_floor[(future_z * state->plane_depth + future_x) *6 + 1] - state->vertices_floor[(current_z * state->plane_depth + current_x)*6 +1] ;
-    if (height_diff < 5.f) {
+    if (height_diff < 10.f) {
         state->look_at += trans;
         state->look_at.y += height_diff;
         
