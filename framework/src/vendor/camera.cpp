@@ -19,12 +19,16 @@ struct camera_state {
     int last_dy;
     float period_mouse;
 
+    unsigned plane_width;
+    unsigned plane_depth;
+
     // transform state
     glm::vec3 look_at;
     float phi;
     float theta;
     float radius;
     glm::mat4 view_mat;
+    float* vertices_floor;
 };
 
 static camera_state* state;
@@ -167,7 +171,18 @@ camera::keycallback(GLFWwindow* window,int key,float delta_time){
     if((key==GLFW_KEY_LEFT_SHIFT)){
         trans -= up * cameraSpeed;
     }
-    state->look_at += trans;
+    int current_x = state->look_at.x;
+    int current_z = state->look_at.z;
+
+    int future_x = (state->look_at + trans).x;
+    int future_z = (state->look_at + trans).z;
+
+    float height_diff = state->vertices_floor[(future_z * state->plane_depth + future_x) *6 + 1] - state->vertices_floor[(current_z * state->plane_depth + current_x)*6 +1] ;
+    if (height_diff < 5.f) {
+        state->look_at += trans;
+        state->look_at.y += height_diff;
+        
+    }
     update();
 }
 
@@ -240,10 +255,13 @@ scroll(int delta) {
     update();
 }
 
-camera::camera(GLFWwindow* window, unsigned int plane_width, unsigned int plane_depth) {
+camera::camera(GLFWwindow* window, unsigned int plane_width, unsigned int plane_depth, float* vertices_floor) {
     state = new camera_state({});
 
+    state->plane_depth = plane_depth;
+    state->plane_width = plane_width;
 
+    state->vertices_floor = vertices_floor;
     state->last_x = 0;
     state->last_y = 0;
     state->drag_start_x = 0;
@@ -276,6 +294,10 @@ camera::~camera() {
 glm::mat4
 camera::view_matrix() const {
     return state->view_mat;
+}
+
+void camera::set_vertices(float* vertices_floor) {
+    state->vertices_floor = vertices_floor;
 }
 
 bool camera::is_not_dragging_w_momentum() {
