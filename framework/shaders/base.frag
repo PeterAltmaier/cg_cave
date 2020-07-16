@@ -18,6 +18,7 @@ uniform vec3 cameraPosition;
 uniform float inner_radius;
 uniform float outer_radius;
 uniform vec3 cam_dir;
+uniform int spotlight_activ;
 
 
 const float pi = 3.14159265359;
@@ -57,7 +58,7 @@ void main()
     float smoothness = clamp((theta-outer_radius)/epsi,0.f,1.f);
 
     //Lichtstärke an dem betrachteten Punkt
-    float spotlight = dot(fs_in.interp_normal, light_dir_flash) * smoothness;
+    float spotlight = dot(fs_in.interp_normal, light_dir_flash) * smoothness * spotlight_activ;
 
 
     //vec3 lighting = (ambient + (diffuse + specular)) * color * dist * 30 * rand_light;

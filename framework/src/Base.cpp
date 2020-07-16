@@ -23,7 +23,7 @@ const unsigned int PLANE_WIDTH = 400;
 const unsigned int PLANE_DEPTH = 400;
 const unsigned int NUM_STICKS = 800;
 const unsigned int PLANE_DIFF = 115;
-bool cam_movement = false;
+int spotlight = 0;
 
 glm::mat4 proj_matrix;
 
@@ -198,9 +198,10 @@ main(int, char* argv[]) {
     int inner_radius_loc = glGetUniformLocation(shaderProgram, "inner_radius");
     int outer_radius_loc = glGetUniformLocation(shaderProgram, "outer_radius");
     int camera_dir_loc = glGetUniformLocation(shaderProgram, "cam_dir");
+    int spotlight_activ_loc = glGetUniformLocation(shaderProgram, "spotlight_activ");
 
-    glUniform1f(inner_radius_loc, glm::cos(glm::radians(19.f)));
-    glUniform1f(outer_radius_loc, glm::cos(glm::radians(26.f)));
+    glUniform1f(inner_radius_loc, glm::cos(glm::radians(25.f)));
+    glUniform1f(outer_radius_loc, glm::cos(glm::radians(31.f)));
 
     glm::vec3 light_dir = glm::normalize(glm::vec3((float)PLANE_WIDTH/2.f, 20, (float)PLANE_DEPTH/2.f));
     glUniform3fv(light_dir_loc, 1, &light_dir[0]);
@@ -288,6 +289,7 @@ main(int, char* argv[]) {
         glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, &model_floor[0][0]);
         glUniform3fv(cameraPositon_loc, 1, glm::value_ptr(cam.position()));
         glUniform3fv(camera_dir_loc, 1, glm::value_ptr(cam.getDirection()));
+        glUniform1i(spotlight_activ_loc, spotlight);
 
         if(lauf % 8 == 0) {
             glUniform1f(rand_light_loc, dist_light(e2));
@@ -1090,18 +1092,16 @@ void processInput(GLFWwindow *window,float delta_time,float* momentum,float *per
         delta_time *= 2.0f;
     }
     if(glfwGetKey(window,GLFW_KEY_TAB) == GLFW_PRESS){
-        if(cam_movement){
-            cam_movement = false;
+        if(spotlight){
+            spotlight = 0;
         }else{
-            cam_movement = true;
+            spotlight = 1;
         }
     }
 
-    if(cam_movement) {
-        for (int i = 0; i < 6; i++) {
-            if (period[i] > 0) {
-                camera::keycallback(window, key[i], delta_time * momentum[i]);
-            }
+    for (int i = 0; i < 6; i++) {
+        if (period[i] > 0) {
+            camera::keycallback(window, key[i], delta_time * momentum[i]);
         }
     }
 }
