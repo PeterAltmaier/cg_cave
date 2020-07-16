@@ -61,7 +61,7 @@ void main()
 
 
     //vec3 lighting = (ambient + (diffuse + specular)) * color * dist * 30 * rand_light;
-    vec3 lighting = ((ambient + diffuse + specular) * dist * 30 * rand_light * color + spotlight * 1000 * pow(dist_flash,1.5) * vec3(0.1f,0.1f,.4f));//;
+    vec3 lighting = ((ambient + diffuse + specular) * dist * 30 * rand_light * color + spotlight * 400 * pow(dist_flash,1.5) * vec3(0.7f,0.7f,.9f));//;
     //vec3 lighting = ( spotlight * 1 ) * color;
     FragColor = vec4(lighting, 1.0);
 }
