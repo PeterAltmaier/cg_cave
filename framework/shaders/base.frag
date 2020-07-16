@@ -60,14 +60,14 @@ void main()
     reflectDir = reflect(-light_dir_flash, normal);
     spec = 0.0;
     halfwayDir = normalize(light_dir_flash + light_dir_flash);
-    spec = pow(max(dot(normal, halfwayDir), 0.0), 50.0) * smoothness * spotlight_activ;
+    spec = pow(max(dot(normal, halfwayDir), 0.0), 40.0) * smoothness * spotlight_activ;
 
     //Lichtstärke an dem betrachteten Punkt
     float spotlight = dot(fs_in.interp_normal, light_dir_flash) * smoothness * spotlight_activ;
 
 
     //vec3 lighting = (ambient + (diffuse + specular)) * color * dist * 30 * rand_light;
-    vec3 lighting = ((ambient + diffuse + specular) * dist * 30 * rand_light * color + spotlight * 200 * pow(dist_flash,1.5) * vec3(0.7f,0.7f,.8f) + spec * color);//;
+    vec3 lighting = ((ambient + diffuse + specular) * dist * 30 * rand_light * color + spotlight * 200 * pow(dist_flash,1.5) * vec3(0.7f,0.7f,.9f) * color + spec * color);//;
     //vec3 lighting = ( spotlight * 1 ) * color;
     FragColor = vec4(lighting, 1.0);
 }
