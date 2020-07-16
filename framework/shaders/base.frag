@@ -60,7 +60,7 @@ void main()
     reflectDir = reflect(-light_dir_flash, normal);
     spec = 0.0;
     halfwayDir = normalize(light_dir_flash + light_dir_flash);
-    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0) * smoothness * spotlight_activ;
+    spec = pow(max(dot(normal, halfwayDir), 0.0), 50.0) * smoothness * spotlight_activ;
 
     //Lichtstärke an dem betrachteten Punkt
     float spotlight = dot(fs_in.interp_normal, light_dir_flash) * smoothness * spotlight_activ;
