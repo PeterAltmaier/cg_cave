@@ -320,13 +320,9 @@ camera::position() const {
 }
 
 glm::vec3 camera::getDirection() {
-    glm::vec3 dir(state->view_mat[3]);
-    glm::vec4 dir_2 = state->view_mat * glm::vec4(0.0f,0.0f,-1.f,0.0f);
-    glm::vec3 dir_3 = glm::vec3(state->view_mat[0][3] * -1.f,state->view_mat[1][3],state->view_mat[2][3]);
-    //return dir;
+    //Blickrichtung ist das Kreuzprodukt aus Rechts- und Obenvektor
     glm::vec3 up = glm::vec3(state->view_mat[0][1],state->view_mat[1][1],state->view_mat[2][1]);
     glm::vec3 camera_right = glm::vec3(state->view_mat[0][0],state->view_mat[1][0],state->view_mat[2][0]);
     return glm::normalize(glm::cross(up,camera_right));
-    //return glm::vec3(dir_2);
-    //return dir_3;
+
 }
