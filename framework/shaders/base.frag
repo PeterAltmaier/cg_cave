@@ -57,12 +57,17 @@ void main()
     //Skalierungsfaktor
     float smoothness = clamp((theta-outer_radius)/epsi,0.f,1.f);
 
+    reflectDir = reflect(-light_dir_flash, normal);
+    spec = 0.0;
+    halfwayDir = normalize(light_dir_flash + light_dir_flash);
+    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0) * smoothness * spotlight_activ;
+
     //Lichtstärke an dem betrachteten Punkt
     float spotlight = dot(fs_in.interp_normal, light_dir_flash) * smoothness * spotlight_activ;
 
 
     //vec3 lighting = (ambient + (diffuse + specular)) * color * dist * 30 * rand_light;
-    vec3 lighting = ((ambient + diffuse + specular) * dist * 30 * rand_light * color + spotlight * 400 * pow(dist_flash,1.5) * vec3(0.7f,0.7f,.9f));//;
+    vec3 lighting = ((ambient + diffuse + specular) * dist * 30 * rand_light * color + spotlight * 400 * pow(dist_flash,1.5) * vec3(0.7f,0.7f,.9f) + spec * color);//;
     //vec3 lighting = ( spotlight * 1 ) * color;
     FragColor = vec4(lighting, 1.0);
 }
